@@ -78,6 +78,9 @@ More info at: https://github.com/puckel/docker-airflow#build
     To build a Dockerfile after changing sth (run inside directoty containing Dockerfile):
     sudo docker build --rm -t <tag_name> .
 
+    Access container bash:
+    sudo docker exec -i -t <container_name> /bin/bash
+
 ## Useful docker-compose commands
 
     Start Containers:
