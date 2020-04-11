@@ -9,7 +9,7 @@ This project contains the following containers:
 
 * airflow-webserver: Airflow webserver and Scheduler
     * Image: puckel/docker-airflow:latest
-    * Port: 8080
+    * Port: 8282
     * References: https://github.com/puckel/docker-airflow
 
 * spark: Spark Master
@@ -43,7 +43,7 @@ This project contains the following containers:
 
 ### Check if you can access
 
-Airflow: http://localhost:8080
+Airflow: http://localhost:8282
 
 Spark Master: http://localhost:8181
 

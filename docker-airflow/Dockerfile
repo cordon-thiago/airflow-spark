@@ -4,7 +4,8 @@
 # BUILD: docker build --rm -t puckel/docker-airflow .
 # SOURCE: https://github.com/puckel/docker-airflow
 
-FROM python:3.6-slim
+# stretch debian version allows JAVA JDK 8
+FROM python:3.6-stretch
 LABEL maintainer="Puckel_"
 
 # Never prompts the user for choices on installation/configuration of packages
@@ -58,9 +59,6 @@ RUN set -ex \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
-    #&& pip install 'grpc-google-iam-v1<0.12dev,>=0.11.4' \
-    #&& pip install 'google-cloud-container==0.2.1' \
-    #&& pip install 'google-cloud-storage==1.25.0' \
     && pip install -r requirements.txt \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis>=2.10.5,<3' \
@@ -78,13 +76,32 @@ RUN set -ex \
     && python --version \
     && pip freeze
 
+## Begin JAVA installation
+# Install OpenJDK-8
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    apt-get install -y gnupg2 && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A && \
+    add-apt-repository "deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu focal main" && \
+    apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    pip freeze && \
+    java -version $$ \
+    javac -version $$ \
+    echo $JAVA_HOME
+
+# Setup JAVA_HOME 
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+RUN export JAVA_HOME
+## Finish JAVA installation
+
 COPY entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x entrypoint.sh
 
-EXPOSE 8080 5555 8793
+EXPOSE 8080 5555 8793 4040
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
