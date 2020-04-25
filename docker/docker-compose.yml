@@ -1,0 +1,113 @@
+version: "3.7"
+services:  
+    # postgres used by airflow
+    postgres:
+        image: postgres:9.6
+        networks:
+            - default_net
+        volumes: 
+            # Create Test database on Postgresql
+            - ./docker-airflow/pg-init-scripts:/docker-entrypoint-initdb.d
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        ports:
+            - "5432:5432"
+
+    # airflow LocalExecutor
+    airflow-webserver:
+        image: puckel/docker-airflow-spark:latest
+        restart: always
+        networks:
+            - default_net
+        depends_on:
+            - postgres
+        environment:
+            - LOAD_EX=n
+            - EXECUTOR=Local
+            - CONN_POSTGRES_TEST=postgres://test:postgres@postgres:5432/test
+        volumes:
+            - ../dags:/usr/local/airflow/dags #DAG folder
+            - ../spark-scripts:/usr/local/airflow/spark-scripts #Spark Scripts
+        ports:
+            - "8282:8282"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    # Spark with 3 workers
+    spark:
+        image: bitnami/spark:latest
+        hostname: spark
+        networks:
+            - default_net
+        environment:
+            - SPARK_MODE=master
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+            - SPARK_LOCAL_IP=spark
+            - SPARK_MASTER_HOST=spark
+        volumes:
+            - ../spark-scripts:/opt/bitnami/spark/spark-scripts # Spark scripts folder
+        ports:
+            - "8181:8080"
+            - "7077:7077"
+    spark-worker-1:
+        image: bitnami/spark:latest
+        networks:
+            - default_net
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1G
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+    spark-worker-2:
+        image: bitnami/spark:latest
+        networks:
+            - default_net
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1G
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+    spark-worker-3:
+        image: bitnami/spark:latest
+        networks:
+            - default_net
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1G
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+
+    #Jupyter notebook
+    jupyter-spark:
+        image: jupyter/pyspark-notebook
+        networks:
+            - default_net
+        ports:
+          - "8888:8888"
+          - "4040-4080:4040-4080"
+        volumes:
+          - ../notebooks:/home/jovyan/work/notebooks/
+
+networks:
+    default_net:

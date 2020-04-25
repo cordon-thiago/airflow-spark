@@ -36,7 +36,6 @@ spark_job = SparkSubmitOperator(
     task_id="spark_job",
     application="/usr/local/airflow/spark-scripts/hello-world.py",
     conn_id="spark_default",
-    conf={'spark.driver.host': '3ccfb66be9ca:7077'},
     verbose=1,
     dag=dag)
 
