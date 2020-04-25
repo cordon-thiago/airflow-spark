@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements.txt
 #
-# pyspark is required for airflow spark-submit local work
+# pyspark is required to spark-submit works inside airflow machine
 
 celery==4.1.1
 kombu==4.2.0

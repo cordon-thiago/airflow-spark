@@ -61,8 +61,6 @@ RUN set -ex \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
-    # Needed to run spark-submit inside airflow machine
-    && pip install pyspark \
     && pip install -r requirements.txt \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis>=2.10.5,<3' \
@@ -87,7 +85,6 @@ RUN apt-get update && \
     apt-get install -y software-properties-common && \
     apt-get install -y gnupg2 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A && \
-    #add-apt-repository "deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu focal main" && \
     add-apt-repository "deb http://security.debian.org/debian-security stretch/updates main" && \ 
     apt-get update && \
     apt-get install -y openjdk-8-jdk && \
@@ -101,40 +98,17 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 RUN export JAVA_HOME
 ## Finish JAVA installation
 
-## HADOOP standalone
-# RUN wget https://downloads.apache.org/hadoop/common/hadoop-2.7.7/hadoop-2.7.7.tar.gz && \
-#     tar -xzvf hadoop-2.7.7.tar.gz && \
-#     mv hadoop-2.7.7 /usr/local/hadoop
-
-# ENV HADOOP_HOME /usr/local/hadoop
-# RUN export HADOOP_HOME
-
-# ENV HADOOP_CONF_DIR /usr/local/hadoop/etc/hadoop
-# RUN export HADOOP_CONF_DIR
-
-# ENV YARN_CONF_DIR /usr/local/hadoop/etc/hadoop
-# RUN export YARN_CONF_DIR
-
-# ENV LD_LIBRARY_PATH /usr/local/hadoop/lib/native
-# RUN export LD_LIBRARY_PATH
-
-# COPY config/yarn-site.xml /usr/local/hadoop/etc/hadoop/yarn-site.xml
-# COPY spark-2.4.5-yarn-shuffle.jar /usr/local/hadoop/share/hadoop/yarn/spark-2.4.5-yarn-shuffle.jar
-## Finish HADOOP standalone
-
-
 COPY entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 
-# Spark submit binaries and jars
-
+# Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
 COPY spark_files/spark-2.4.5-bin-hadoop2.6/bin /usr/local/spark/bin 
 COPY spark_files/spark-2.4.5-bin-hadoop2.6/jars /usr/local/spark/assembly/target/scala-2.12/jars
 # Create SPARK_HOME env var
 ENV SPARK_HOME /usr/local/spark
 RUN export SPARK_HOME
 
-ENV SPARK_MASTER_URL spark://spark:7077
+# ENV SPARK_MASTER_URL spark://spark:7077
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x entrypoint.sh
