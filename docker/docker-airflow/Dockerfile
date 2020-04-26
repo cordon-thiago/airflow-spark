@@ -1,12 +1,12 @@
 # VERSION 1.10.2
-# AUTHOR: Matthieu "Puckel_" Roisil
-# DESCRIPTION: Basic Airflow container
-# BUILD: docker build --rm -t puckel/docker-airflow-spark:latest .
-# SOURCE: https://github.com/puckel/docker-airflow
+# AUTHOR: Thiago Cordon Rodrigues
+# DESCRIPTION: Airflow container with JAVA 8 and SPARK binaries
+# BUILD: docker build --rm -t docker-airflow-spark:latest .
+# BASED ON: https://github.com/puckel/docker-airflow
 
 # stretch debian version allows JAVA JDK 8
 FROM python:3.6-stretch
-LABEL maintainer="Puckel_"
+LABEL maintainer="cordon-thiago"
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -78,7 +78,9 @@ RUN set -ex \
     && python --version \
     && pip freeze
 
+###############################
 ## Begin JAVA installation
+###############################
 # Java is required in order to spark-submit work
 # Install OpenJDK-8
 RUN apt-get update && \
@@ -96,17 +98,26 @@ RUN apt-get update && \
 # Setup JAVA_HOME 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 RUN export JAVA_HOME
+###############################
 ## Finish JAVA installation
+###############################
 
 COPY entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 
+###############################
+## SPARK files and variables
+###############################
 # Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
 COPY spark_files/spark-2.4.5-bin-hadoop2.6/bin /usr/local/spark/bin 
 COPY spark_files/spark-2.4.5-bin-hadoop2.6/jars /usr/local/spark/assembly/target/scala-2.12/jars
 # Create SPARK_HOME env var
 ENV SPARK_HOME /usr/local/spark
 RUN export SPARK_HOME
+ENV PATH $PATH:/usr/local/spark/bin
+###############################
+## Finish SPARK files and variables
+###############################
 
 # ENV SPARK_MASTER_URL spark://spark:7077
 

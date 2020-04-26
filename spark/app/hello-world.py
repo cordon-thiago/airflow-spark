@@ -8,7 +8,7 @@ spark = SparkSession.builder.config(conf=conf).getOrCreate()
 # from pyspark import SparkContext
 # sc = SparkContext("local", "First App")
 
-logFile = "airflow/airflow.cfg"
+logFile = "/usr/local/spark/resources/data/airflow.cfg"
 logData = sc.textFile(logFile).cache()
 numAs = logData.filter(lambda s: 'a' in s).count()
 numBs = logData.filter(lambda s: 'b' in s).count()
