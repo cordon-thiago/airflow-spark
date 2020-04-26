@@ -119,8 +119,6 @@ ENV PATH $PATH:/usr/local/spark/bin
 ## Finish SPARK files and variables
 ###############################
 
-# ENV SPARK_MASTER_URL spark://spark:7077
-
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x entrypoint.sh
 
