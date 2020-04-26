@@ -4,6 +4,13 @@ from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from datetime import datetime, timedelta
 
 ###############################################
+# Parameters
+###############################################
+spark_master = "spark://spark:7077"
+spark_app_name = "Spark Hello World"
+file_path = "/usr/local/spark/resources/data/airflow.cfg"
+
+###############################################
 # DAG Definition
 ###############################################
 now = datetime.now()
@@ -16,27 +23,27 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "retry_delay": timedelta(minutes=1),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
+    "retry_delay": timedelta(minutes=1)
 }
 
 dag = DAG(
         "spark-test", 
         default_args=default_args, 
-        schedule_interval=timedelta(1),
-        #template_searchpath="./sql/etl/"
+        schedule_interval=timedelta(1)
     )
 
 start = DummyOperator(task_id="start", dag=dag)
 
 spark_job = SparkSubmitOperator(
     task_id="spark_job",
-    application="/usr/local/spark/app/hello-world.py",
+    application="/usr/local/spark/app/hello-world.py", # Spark application path created in airflow and spark cluster
+    name=spark_app_name,
     conn_id="spark_default",
     verbose=1,
+    conf={"spark.master":spark_master},
+    application_args=[file_path],
     dag=dag)
 
-start >> spark_job
+end = DummyOperator(task_id="end", dag=dag)
+
+start >> spark_job >> end

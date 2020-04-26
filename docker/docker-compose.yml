@@ -29,7 +29,7 @@ services:
             - CONN_POSTGRES_TEST=postgres://test:postgres@postgres:5432/test
         volumes:
             - ../dags:/usr/local/airflow/dags #DAG folder
-            - ../spark/app:/usr/local/spark/app #Spark Scripts
+            - ../spark/app:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
         ports:
             - "8282:8282"
@@ -55,7 +55,7 @@ services:
             - SPARK_LOCAL_IP=spark
             - SPARK_MASTER_HOST=spark
         volumes:
-            - ../spark/app:/usr/local/spark/app # Spark scripts folder
+            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
         ports:
             - "8181:8080"
@@ -75,6 +75,7 @@ services:
             - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
             - SPARK_SSL_ENABLED=no
         volumes:
+            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
 
     spark-worker-2:
@@ -91,6 +92,7 @@ services:
             - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
             - SPARK_SSL_ENABLED=no
         volumes:
+            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
 
     spark-worker-3:
@@ -107,6 +109,7 @@ services:
             - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
             - SPARK_SSL_ENABLED=no
         volumes:
+            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
 
     #Jupyter notebook
