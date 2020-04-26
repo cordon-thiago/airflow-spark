@@ -16,7 +16,7 @@ This project contains the following containers:
     * Port: 8181
     * References: https://github.com/bitnami/bitnami-docker-spark
 
-* spark-worker-N: Spark workers. You can add workers copying the containers and changing the container name
+* spark-worker-N: Spark workers. You can add workers copying the containers and changing the container name inside the docker-compose.yml file
     * Image: bitnami/spark:latest
     * References: https://github.com/bitnami/bitnami-docker-spark
 
