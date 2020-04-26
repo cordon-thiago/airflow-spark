@@ -66,6 +66,22 @@ Jupyter Notebook: http://127.0.0.1:8888
   
         docker logs -f docker_jupyter-spark_1
 
+## How to run a DAG to test
+
+1. Configure spark connection acessing airflow web UI http://localhost:8080 and going to Connections
+   ![](./doc/airflow_connections_menu.png "Airflow Connections")
+
+2. Edit the spark_default connection inserting `spark://spark` in Host field and Port `7077`
+    ![](./doc/airflow_spark_connection.png "Airflow Spark connection")
+
+3. Run the spark-test DAG
+   
+4. Check the DAG log for the task spark_job. You will see the result printed in the log
+   ![](./doc/airflow_dag_log.png "Airflow log")
+
+5. Check the spark application in the Spark Master web UI (http://localhost:8181)
+   ![](./doc/spark_master_app.png "Spark Master UI")
+
 ## Adding Airflow Extra packages
 
 Rebuild Dockerfile (in this example, adding GCP extra):
