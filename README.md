@@ -8,9 +8,8 @@ This project contains the following containers:
     * References: https://hub.docker.com/_/postgres
 
 * airflow-webserver: Airflow webserver and Scheduler
-    * Image: puckel/docker-airflow:latest
+    * Image: docker-airflow-spark:latest
     * Port: 8282
-    * References: https://github.com/puckel/docker-airflow
 
 * spark: Spark Master
     * Image: bitnami/spark:latest
@@ -30,16 +29,31 @@ This project contains the following containers:
 
 ## Setup
 
+### Clone project
+
+    git clone https://github.com/cordon-thiago/airflow-spark
+
 ### Download Images
 
     sudo docker pull postgres:9.6
-    sudo docker pull puckel/docker-airflow:latest
     sudo docker pull bitnami/spark:latest
     sudo docker pull jupyter/pyspark-notebook:latest
 
+### Build airflow Docker
+
+Inside the <'project folder'>/docker/docker-airflow
+
+    sudo docker build --rm -t docker-airflow-spark:latest .
+
 ### Start containers
 
+Navigate to the <'project folder'>/docker and:
+
     sudo docker-compose up
+
+If you want to run in background:
+
+    sudo docker-compose up -d
 
 ### Check if you can access
 
@@ -50,13 +64,13 @@ Spark Master: http://localhost:8181
 Jupyter Notebook: http://127.0.0.1:8888
   * For Jupyter notebook, you must copy the URL with the token generated when the container is started and paste in your browser. The URL with the token can be taken from container logs using:
   
-        docker logs -f airflow-spark_jupyter-spark_1
+        docker logs -f docker_jupyter-spark_1
 
 ## Adding Airflow Extra packages
 
-Rebuild Dockerfile:
+Rebuild Dockerfile (in this example, adding GCP extra):
 
-    sudo docker build --rm --build-arg AIRFLOW_DEPS="gcp" -t puckel/docker-airflow .
+    sudo docker build --rm --build-arg AIRFLOW_DEPS="gcp" -t docker-airflow-spark:latest .
 
 After successfully built, run docker-compose to start container:
 
