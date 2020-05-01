@@ -2,25 +2,25 @@
 
 This project contains the following containers:
 
-* postgres: Postgres database for Airflow
+* postgres: Postgres database for Airflow metadata and a Test database to test whatever you want.
     * Image: postgres:9.6
     * Database Port: 5432
     * References: https://hub.docker.com/_/postgres
 
-* airflow-webserver: Airflow webserver and Scheduler
+* airflow-webserver: Airflow webserver and Scheduler.
     * Image: docker-airflow-spark:latest
     * Port: 8282
 
-* spark: Spark Master
+* spark: Spark Master.
     * Image: bitnami/spark:latest
     * Port: 8181
     * References: https://github.com/bitnami/bitnami-docker-spark
 
-* spark-worker-N: Spark workers. You can add workers copying the containers and changing the container name inside the docker-compose.yml file
+* spark-worker-N: Spark workers. You can add workers copying the containers and changing the container name inside the docker-compose.yml file.
     * Image: bitnami/spark:latest
     * References: https://github.com/bitnami/bitnami-docker-spark
 
-* jupyter-spark: Jupyter notebook with pyspark for interactive development
+* jupyter-spark: Jupyter notebook with pyspark for interactive development.
   * Image: jupyter/pyspark-notebook
   * Port: 8888
   * References: 
@@ -64,6 +64,20 @@ If you want to run in background:
 Airflow: http://localhost:8282
 
 Spark Master: http://localhost:8181
+
+PostgreSql - Database Test:
+
+* Server: localhost:5432
+* Database: test
+* User: test
+* Password: postgres
+
+Postgres - Database airflow:
+
+* Server: localhost:5432
+* Database: airflow
+* User: airflow
+* Password: airflow
 
 Jupyter Notebook: http://127.0.0.1:8888
   * For Jupyter notebook, you must copy the URL with the token generated when the container is started and paste in your browser. The URL with the token can be taken from container logs using:
