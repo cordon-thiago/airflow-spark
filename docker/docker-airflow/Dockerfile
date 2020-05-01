@@ -92,8 +92,7 @@ RUN apt-get update && \
     apt-get install -y openjdk-8-jdk && \
     pip freeze && \
     java -version $$ \
-    javac -version $$ \
-    echo $JAVA_HOME
+    javac -version
 
 # Setup JAVA_HOME 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
