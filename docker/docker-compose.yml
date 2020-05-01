@@ -26,7 +26,6 @@ services:
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local
-            - CONN_POSTGRES_TEST=postgres://test:postgres@postgres:5432/test
         volumes:
             - ../dags:/usr/local/airflow/dags #DAG folder
             - ../spark/app:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
