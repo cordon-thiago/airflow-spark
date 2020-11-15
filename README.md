@@ -86,7 +86,7 @@ Jupyter Notebook: http://127.0.0.1:8888
 
 ## How to run a DAG to test
 
-1. Configure spark connection acessing airflow web UI http://localhost:8080 and going to Connections
+1. Configure spark connection acessing airflow web UI http://localhost:8282 and going to Connections
    ![](./doc/airflow_connections_menu.png "Airflow Connections")
 
 2. Edit the spark_default connection inserting `spark://spark` in Host field and Port `7077`
