@@ -12,12 +12,12 @@ This project contains the following containers:
     * Port: 8282
 
 * spark: Spark Master.
-    * Image: bitnami/spark:latest
+    * Image: bitnami/spark:2.4.5
     * Port: 8181
     * References: https://github.com/bitnami/bitnami-docker-spark
 
 * spark-worker-N: Spark workers. You can add workers copying the containers and changing the container name inside the docker-compose.yml file.
-    * Image: bitnami/spark:latest
+    * Image: bitnami/spark:2.4.5
     * References: https://github.com/bitnami/bitnami-docker-spark
 
 * jupyter-spark: Jupyter notebook with pyspark for interactive development.
@@ -40,7 +40,7 @@ This project contains the following containers:
 ### Download Images
 
     $ docker pull postgres:9.6
-    $ docker pull bitnami/spark:latest
+    $ docker pull bitnami/spark:2.4.5
     $ docker pull jupyter/pyspark-notebook:latest
 
 ### Build airflow Docker
@@ -102,11 +102,11 @@ Jupyter Notebook: http://127.0.0.1:8888
 
 ## Increasing the number of Spark Workers
 
-You can increase the number of Spark workers just adding new services based on `bitnami/spark:latest` image to the `docker-compose.yml` file like following:
+You can increase the number of Spark workers just adding new services based on `bitnami/spark:2.4.5` image to the `docker-compose.yml` file like following:
 
 ```
 spark-worker-n:
-        image: bitnami/spark:latest
+        image: bitnami/spark:2.4.5
         networks:
             - default_net
         environment:
