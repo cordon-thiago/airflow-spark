@@ -17,7 +17,7 @@ services:
 
     # airflow LocalExecutor
     airflow-webserver:
-        image: docker-airflow-spark:latest
+        image: docker-airflow-spark:1.10.7_3.0.1
         restart: always
         networks:
             - default_net
@@ -41,7 +41,7 @@ services:
 
     # Spark with 3 workers
     spark:
-        image: bitnami/spark:latest
+        image: bitnami/spark:3.0.1
         hostname: spark
         networks:
             - default_net
@@ -59,7 +59,7 @@ services:
             - "7077:7077"
 
     spark-worker-1:
-        image: bitnami/spark:latest
+        image: bitnami/spark:3.0.1
         networks:
             - default_net
         environment:
@@ -76,7 +76,7 @@ services:
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
 
     spark-worker-2:
-        image: bitnami/spark:latest
+        image: bitnami/spark:3.0.1
         networks:
             - default_net
         environment:
@@ -93,7 +93,7 @@ services:
             - ../spark/resources/data:/usr/local/spark/resources/data #Data folder (Must be the same path in airflow and Spark Cluster)
 
     spark-worker-3:
-        image: bitnami/spark:latest
+        image: bitnami/spark:3.0.1
         networks:
             - default_net
         environment:
@@ -111,7 +111,7 @@ services:
 
     #Jupyter notebook
     jupyter-spark:
-        image: jupyter/pyspark-notebook
+        image: jupyter/pyspark-notebook:3.0.1
         networks:
             - default_net
         ports:
