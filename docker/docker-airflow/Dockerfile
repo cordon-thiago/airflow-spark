@@ -17,6 +17,8 @@ ARG AIRFLOW_VERSION=1.10.7
 ARG AIRFLOW_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
+ARG SPARK_VERSION="3.0.1"
+ARG HADOOP_VERSION="2.7"
 ENV AIRFLOW_GPL_UNIDECODE yes
 
 # Define en_US.
@@ -107,11 +109,19 @@ COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 ###############################
 ## SPARK files and variables
 ###############################
-# Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
-COPY spark_files/spark-2.4.5-bin-hadoop2.6/bin /usr/local/spark/bin 
-COPY spark_files/spark-2.4.5-bin-hadoop2.6/jars /usr/local/spark/assembly/target/scala-2.12/jars
-# Create SPARK_HOME env var
 ENV SPARK_HOME /usr/local/spark
+
+# Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
+RUN cd "/tmp" && \
+        wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
+        tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
+        mkdir -p "${SPARK_HOME}/bin" && \
+        mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
+        cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/bin/." "${SPARK_HOME}/bin/" && \
+        cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
+        rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
+
+# Create SPARK_HOME env var
 RUN export SPARK_HOME
 ENV PATH $PATH:/usr/local/spark/bin
 ###############################
