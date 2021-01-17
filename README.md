@@ -191,5 +191,5 @@ More info at: https://github.com/puckel/docker-airflow#build
 # Extras
 ## Spark + Postgres sample
 
-* The DAG spark-postgres.py loads movies.csv and ratings.csv data into Postgres tables and query these tables to generate a list of top 10 movies with more rates.
-  * This DAG runs the load-postgres.py and read-postgres.py applications. These applications are also available in notebook.
+* The DAG [spark-postgres.py](dags/spark-postgres.py) loads [movies.csv](spark/resources/data/movies.csv) and [ratings.csv](spark/resources/data/ratings.csv) data into Postgres tables and query these tables to generate a list of top 10 movies with more rates.
+  * This DAG runs the load-postgres.py and read-postgres.py applications. These applications are also available in the notebooks [load-postgres-notebook.ipynb](notebooks/load-postgres-notebook.ipynb) and [read-postgres-notebook.ipynb](notebooks/read-postgres-notebook.ipynb).
