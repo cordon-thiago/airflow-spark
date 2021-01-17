@@ -7,8 +7,13 @@ from datetime import datetime, timedelta
 # Parameters
 ###############################################
 spark_master = "spark://spark:7077"
-spark_app_name = "Spark Read Postgres"
 postgres_driver_jar = "/usr/local/spark/resources/jars/postgresql-9.4.1207.jar"
+
+movies_file = "/usr/local/spark/resources/data/movies.csv"
+ratings_file = "/usr/local/spark/resources/data/ratings.csv"
+postgres_db = "jdbc:postgresql://postgres/test"
+postgres_user = "test"
+postgres_pwd = "postgres"
 
 ###############################################
 # DAG Definition
@@ -27,25 +32,37 @@ default_args = {
 }
 
 dag = DAG(
-        "spark-read-postgres", 
+        "spark-postgres", 
         default_args=default_args, 
         schedule_interval=timedelta(1)
     )
 
 start = DummyOperator(task_id="start", dag=dag)
 
-spark_job = SparkSubmitOperator(
-    task_id="spark_job_read_postgres",
-    application="/usr/local/spark/app/read-postgres.py", # Spark application path created in airflow and spark cluster
-    name=spark_app_name,
+spark_job_load_postgres = SparkSubmitOperator(
+    task_id="spark_job_load_postgres",
+    application="/usr/local/spark/app/load-postgres.py", # Spark application path created in airflow and spark cluster
+    name="load-postgres",
     conn_id="spark_default",
     verbose=1,
     conf={"spark.master":spark_master},
-    #application_args=[file_path],
+    application_args=[movies_file,ratings_file,postgres_db,postgres_user,postgres_pwd],
+    jars=postgres_driver_jar,
+    driver_class_path=postgres_driver_jar,
+    dag=dag)
+
+spark_job_read_postgres = SparkSubmitOperator(
+    task_id="spark_job_read_postgres",
+    application="/usr/local/spark/app/read-postgres.py", # Spark application path created in airflow and spark cluster
+    name="read-postgres",
+    conn_id="spark_default",
+    verbose=1,
+    conf={"spark.master":spark_master},
+    application_args=[postgres_db,postgres_user,postgres_pwd],
     jars=postgres_driver_jar,
     driver_class_path=postgres_driver_jar,
     dag=dag)
 
 end = DummyOperator(task_id="end", dag=dag)
 
-start >> spark_job >> end
+start >> spark_job_load_postgres >> spark_job_read_postgres >> end
