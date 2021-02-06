@@ -126,6 +126,17 @@ Jupyter Notebook: http://127.0.0.1:8888
 5. Check the spark application in the Spark Master web UI (http://localhost:8181)
    ![](./doc/spark_master_app.png "Spark Master UI")
 
+## How to run the Spark Apps via spark-submit
+After started your docker containers, run the command below in your terminal:
+```
+$ docker exec -it docker_spark_1 spark-submit --master spark://spark:7077 <spark_app_path> [optional]<list_of_app_args>
+```
+
+Example running the hellop-world.py application:
+```
+$ docker exec -it docker_spark_1 spark-submit --master spark://spark:7077 /usr/local/spark/app/hello-world.py /usr/local/spark/resources/data/airflow.cfg
+```
+
 ## Increasing the number of Spark Workers
 
 You can increase the number of Spark workers just adding new services based on `bitnami/spark:3.0.1` image to the `docker-compose.yml` file like following:
