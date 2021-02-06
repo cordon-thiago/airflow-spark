@@ -27,7 +27,8 @@ default_args = {
 }
 
 dag = DAG(
-        "spark-test", 
+        dag_id="spark-test", 
+        description="This DAG runs a simple Pyspark app.",
         default_args=default_args, 
         schedule_interval=timedelta(1)
     )
