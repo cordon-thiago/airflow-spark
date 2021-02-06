@@ -7,8 +7,7 @@ from datetime import datetime, timedelta
 # Parameters
 ###############################################
 spark_master = "spark://spark:7077"
-spark_app_name = "Spark Hello World"
-file_path = "/usr/local/spark/resources/data/airflow.cfg"
+csv_file = "/usr/local/spark/resources/data/movies.csv"
 
 ###############################################
 # DAG Definition
@@ -27,8 +26,8 @@ default_args = {
 }
 
 dag = DAG(
-        dag_id="spark-test", 
-        description="This DAG runs a simple Pyspark app.",
+        dag_id="spark-hello-world-module", 
+        description="This DAG runs a Pyspark app that uses modules.",
         default_args=default_args, 
         schedule_interval=timedelta(1)
     )
@@ -37,12 +36,12 @@ start = DummyOperator(task_id="start", dag=dag)
 
 spark_job = SparkSubmitOperator(
     task_id="spark_job",
-    application="/usr/local/spark/app/hello-world.py", # Spark application path created in airflow and spark cluster
-    name=spark_app_name,
+    application="/usr/local/spark/app/hello-world-module.py", # Spark application path created in airflow and spark cluster
+    name="hello-world-module",
     conn_id="spark_default",
     verbose=1,
     conf={"spark.master":spark_master},
-    application_args=[file_path],
+    application_args=[csv_file],
     dag=dag)
 
 end = DummyOperator(task_id="end", dag=dag)

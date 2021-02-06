@@ -4,3 +4,4 @@ dags/__pycache__
 .part*
 part-*
 *_SUCCESS*
+*.pyc
