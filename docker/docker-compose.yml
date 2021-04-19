@@ -17,7 +17,7 @@ services:
 
     # airflow LocalExecutor
     airflow-webserver:
-        image: docker-airflow-spark:1.10.7_3.0.1
+        image: docker-airflow-spark:1.10.7_3.0.2
         restart: always
         networks:
             - default_net
@@ -41,7 +41,7 @@ services:
 
     # Spark with 3 workers
     spark:
-        image: bitnami/spark:3.0.1
+        image: bitnami/spark:3.0.2
         user: root # Run container as root container: https://docs.bitnami.com/tutorials/work-with-non-root-containers/
         hostname: spark
         networks:
@@ -60,7 +60,7 @@ services:
             - "7077:7077"
 
     spark-worker-1:
-        image: bitnami/spark:3.0.1
+        image: bitnami/spark:3.0.2
         user: root
         networks:
             - default_net
@@ -78,7 +78,7 @@ services:
             - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
 
     spark-worker-2:
-        image: bitnami/spark:3.0.1
+        image: bitnami/spark:3.0.2
         user: root
         networks:
             - default_net
@@ -96,7 +96,7 @@ services:
             - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
 
     spark-worker-3:
-        image: bitnami/spark:3.0.1
+        image: bitnami/spark:3.0.2
         user: root
         networks:
             - default_net
@@ -115,7 +115,7 @@ services:
 
     #Jupyter notebook
     jupyter-spark:
-        image: jupyter/pyspark-notebook:3.0.1
+        image: jupyter/pyspark-notebook:3.0.2
         networks:
             - default_net
         ports:
