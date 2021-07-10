@@ -43,11 +43,8 @@ print("######################################")
 print("ASSIGNING UUID")
 print("######################################")
 
-# We need to create a spark UDF with the Python function in order to use it inside the Spark.
-udfGenerateUUID = functions.udf(moduleExample.pythonFunctions.generate_uuid, StringType())
-
-# Applying the python function
-df_csv_sample = df_csv_sample.withColumn("uuid", udfGenerateUUID())
+# Applying the python function. We don't need to create UDF in spark since spark version 3.1
+df_csv_sample = df_csv_sample.withColumn("uuid", moduleExample.pythonFunctions.generate_uuid())
 
 print("######################################")
 print("PRINTING 10 ROWS OF SAMPLE DF")
