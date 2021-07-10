@@ -8,22 +8,27 @@ This project contains the following containers:
     * References: https://hub.docker.com/_/postgres
 
 * airflow-webserver: Airflow webserver and Scheduler.
-    * Image: docker-airflow-spark:1.10.7_3.0.2
+    * Image: docker-airflow-spark:1.10.7_3.1.2
     * Port: 8282
 
 * spark: Spark Master.
-    * Image: bitnami/spark:3.0.2
+    * Image: bitnami/spark:3.1.2
     * Port: 8181
-    * References: https://github.com/bitnami/bitnami-docker-spark
+    * References: 
+      * https://github.com/bitnami/bitnami-docker-spark
+      * https://hub.docker.com/r/bitnami/spark/tags/?page=1&ordering=last_updated
 
 * spark-worker-N: Spark workers. You can add workers copying the containers and changing the container name inside the docker-compose.yml file.
-    * Image: bitnami/spark:3.0.2
-    * References: https://github.com/bitnami/bitnami-docker-spark
+    * Image: bitnami/spark:3.1.2
+    * References: 
+      * https://github.com/bitnami/bitnami-docker-spark
+      * https://hub.docker.com/r/bitnami/spark/tags/?page=1&ordering=last_updated
 
 * jupyter-spark: Jupyter notebook with pyspark for interactive development.
-  * Image: jupyter/pyspark-notebook:3.0.2
+  * Image: jupyter/pyspark-notebook:spark-3.1.2
   * Port: 8888
   * References: 
+    * https://hub.docker.com/layers/jupyter/pyspark-notebook/spark-3.1.2/images/sha256-37398efc9e51f868e0e1fde8e93df67bae0f9c77d3d3ce7fe3830faeb47afe4d?context=explore
     * https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-pyspark-notebook
     * https://hub.docker.com/r/jupyter/pyspark-notebook/tags/
 
@@ -41,7 +46,7 @@ This project contains the following containers:
 
 Inside the airflow-spark/docker/docker-airflow
 
-    $ docker build --rm --force-rm -t docker-airflow-spark:1.10.7_3.0.2 .
+    $ docker build --rm --force-rm -t docker-airflow-spark:1.10.7_3.1.2 .
 
 Optionally, you can override the arguments in the build to choose specific Spark, Hadoop and Airflow versions. As an example, here is how to build an image containing Airflow version `1.10.14`, Spark version `2.4.7` and Hadoop version `2.7`.
 
@@ -56,23 +61,6 @@ Spark and hadoop versions follow the versions as defined at Spark download page:
 Airflow versions can be found here: https://pypi.org/project/apache-airflow/#history
 
 If you change the name or the tag of the docker image when building, remember to update the name/tag in docker-compose file.
-
-### Build Jupyter docker
-
-Inside the airflow-spark/docker/docker-jupyter
-
-    $ docker build --rm --force-rm -t jupyter/pyspark-notebook:3.0.2 .
-
-Optionally, you can override the arguments in the build to choose specific Spark and Hadoop versions. As an example, here is how to build an image containing Spark version `2.4.7` and Hadoop version `2.7`.
-
-    $ docker build --rm --force-rm \
-    -t jupyter/pyspark-notebook:2.4.7 . \
-    --build-arg spark_version=2.4.7 \
-    --build-arg hadoop_version=2.7
-
-Spark and hadoop versions follow the versions as defined at Spark download page: https://spark.apache.org/downloads.html
-
-If you change the name or the tag of the docker image when building, remember to update the name/tag in docker-compose file.
 ### Start containers
 
 Navigate to airflow-spark/docker and:
@@ -83,7 +71,7 @@ If you want to run in background:
 
     $ docker-compose up -d
 
-Note: when running the docker-compose for the first time, the images postgres:9.6 and bitnami/spark:3.0.2 will be downloaded before the containers started.
+Note: when running the docker-compose for the first time, the images `postgres:9.6`, `bitnami/spark:3.1.2` and `jupyter/pyspark-notebook:spark-3.1.2` will be downloaded before the containers started.
 
 ### Check if you can access
 
@@ -139,11 +127,11 @@ $ docker exec -it docker_spark_1 spark-submit --master spark://spark:7077 /usr/l
 
 ## Increasing the number of Spark Workers
 
-You can increase the number of Spark workers just adding new services based on `bitnami/spark:3.0.2` image to the `docker-compose.yml` file like following:
+You can increase the number of Spark workers just adding new services based on `bitnami/spark:3.1.2` image to the `docker-compose.yml` file like following:
 
 ```
 spark-worker-n:
-        image: bitnami/spark:3.0.2
+        image: bitnami/spark:3.1.2
         user: root
         networks:
             - default_net
@@ -166,7 +154,7 @@ spark-worker-n:
 
 Rebuild Dockerfile (in this example, adding GCP extra):
 
-    $ docker build --rm --build-arg AIRFLOW_DEPS="gcp" -t docker-airflow-spark:1.10.7_3.0.2 .
+    $ docker build --rm --build-arg AIRFLOW_DEPS="gcp" -t docker-airflow-spark:1.10.7_3.1.2 .
 
 After successfully built, run docker-compose to start container:
 
