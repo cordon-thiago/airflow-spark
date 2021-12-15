@@ -31,16 +31,16 @@ export \
 
 echo "***********Finish Exporting variables***************"
 
-# Load DAGs exemples (default: Yes)
+# Load DAGs examples (default: Yes)
 if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]
 then
   AIRFLOW__CORE__LOAD_EXAMPLES=False
 fi
 
 # Install custom python package if requirements.txt is present
-if [ -e "/requirements.txt" ]; then
-    $(which pip) install --user -r /requirements.txt
-fi
+#if [ -e "/requirements.txt" ]; then
+#    $(which pip) install --user -r /requirements.txt
+#fi
 
 if [ -n "$REDIS_PASSWORD" ]; then
     REDIS_PREFIX=:${REDIS_PASSWORD}@
@@ -75,7 +75,7 @@ fi
 
 case "$1" in
   webserver)
-    airflow initdb
+    airflow db init
     if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ]; then
       # With the "Local" executor it should all run in one container.
       airflow scheduler &
@@ -85,7 +85,7 @@ case "$1" in
     # exec airflow connections add --conn_id 'postgres_test' --conn_uri 'postgres://test:postgres@postgres:5432/test'
     ;;
   worker|scheduler)
-    # To give the webserver time to run initdb.
+    # To give the webserver time to run db init.
     sleep 10
     exec airflow "$@"
     ;;

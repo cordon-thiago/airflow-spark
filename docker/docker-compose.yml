@@ -1,23 +1,32 @@
 version: "3.7"
+
+x-dag-path: &dag_path ../dags:/usr/local/airflow/dags #DAG folder
+x-spark_path: &spark_path ../spark/app:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+x-resources_path: &resources_path ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+
+
 services:  
     # postgres used by airflow
     postgres:
-        image: postgres:9.6
+        image: postgres:13
         networks:
             - default_net
-        volumes: 
-            # Create Test database on Postgresql
-            - ./docker-airflow/pg-init-scripts:/docker-entrypoint-initdb.d
         environment:
             - POSTGRES_USER=airflow
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-U", "airflow" ]
+            interval: 5s
+            retries: 5
         ports:
             - "5432:5432"
 
     # airflow LocalExecutor
     airflow-webserver:
-        image: docker-airflow-spark:1.10.7_3.1.2
+        build:
+            context: ..
+            dockerfile: docker/docker-airflow/Dockerfile
         restart: always
         networks:
             - default_net
@@ -27,9 +36,9 @@ services:
             - LOAD_EX=n
             - EXECUTOR=Local
         volumes:
-            - ../dags:/usr/local/airflow/dags #DAG folder
-            - ../spark/app:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-            - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+            - *dag_path
+            - *spark_path
+            - *resources_path
         ports:
             - "8282:8282"
         command: webserver

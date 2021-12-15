@@ -5,19 +5,18 @@
 # BASED ON: https://github.com/puckel/docker-airflow
 
 # stretch debian version allows JAVA JDK 8
-FROM python:3.6-stretch
-LABEL maintainer="cordon-thiago"
+FROM python:3.7-stretch
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.7
+ARG AIRFLOW_VERSION=2.2.2
 ARG AIRFLOW_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
-ARG SPARK_VERSION="3.1.2"
+ARG SPARK_VERSION="3.2.0"
 ARG HADOOP_VERSION="3.2"
 ENV AIRFLOW_GPL_UNIDECODE yes
 
@@ -28,7 +27,7 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 
-COPY requirements.txt /requirements.txt
+COPY docker/docker-airflow/requirements.txt /requirements.txt
 
 RUN set -ex \
     && buildDeps=' \
@@ -103,8 +102,9 @@ RUN export JAVA_HOME
 ## Finish JAVA installation
 ###############################
 
-COPY entrypoint.sh /entrypoint.sh
-COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
+COPY docker/docker-airflow/entrypoint.sh /entrypoint.sh
+COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
+COPY docker/docker-airflow/config/webserver_config.py ${AIRFLOW_HOME}/airflow/webserver_config.py
 
 ###############################
 ## SPARK files and variables
@@ -113,7 +113,7 @@ ENV SPARK_HOME /usr/local/spark
 
 # Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
 RUN cd "/tmp" && \
-        wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
+        wget -q --no-verbose "https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
         tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
         mkdir -p "${SPARK_HOME}/bin" && \
         mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
