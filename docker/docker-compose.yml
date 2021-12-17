@@ -35,6 +35,8 @@ services:
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local
+            - FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
+            - AIRFLOW__CORE__FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
         volumes:
             - *dag_path
             - *spark_path
