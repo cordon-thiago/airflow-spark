@@ -102,10 +102,6 @@ RUN export JAVA_HOME
 ## Finish JAVA installation
 ###############################
 
-COPY docker/docker-airflow/entrypoint.sh /entrypoint.sh
-COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
-COPY docker/docker-airflow/config/webserver_config.py ${AIRFLOW_HOME}/airflow/webserver_config.py
-
 ###############################
 ## SPARK files and variables
 ###############################
@@ -127,6 +123,10 @@ ENV PATH $PATH:/usr/local/spark/bin
 ###############################
 ## Finish SPARK files and variables
 ###############################
+
+COPY docker/docker-airflow/entrypoint.sh /entrypoint.sh
+COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
+COPY docker/docker-airflow/config/webserver_config.py ${AIRFLOW_HOME}/airflow/webserver_config.py
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x entrypoint.sh
