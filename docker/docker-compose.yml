@@ -146,7 +146,8 @@ services:
             dockerfile: docker/docker-rstudio/Dockerfile
         restart: on-failure
         volumes:
-            - ../rstudio/:/home/rstudio/
+            - ../rstudio/app_airflow_spark:/home/rstudio/app_airflow_spark
+            - ../rstudio/notebooks:/home/rstudio/notebooks
         environment:
             - PASSWORD=airflow
         ports:
