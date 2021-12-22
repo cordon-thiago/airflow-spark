@@ -137,5 +137,20 @@ services:
           - ../spark/resources/data:/home/jovyan/work/data/
           - ../spark/resources/jars:/home/jovyan/work/jars/
 
+    rstudio:
+        image: rocker/rstudio:4.0.0
+        networks:
+            - default_net
+        build:
+            context: ..
+            dockerfile: docker/docker-rstudio/Dockerfile
+        restart: on-failure
+        volumes:
+            - ../rstudio/:/home/rstudio/
+        environment:
+            - PASSWORD=airflow
+        ports:
+            - "8787:8787"
+
 networks:
     default_net:
