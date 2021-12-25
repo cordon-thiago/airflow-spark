@@ -5,3 +5,9 @@ dags/__pycache__
 part-*
 *_SUCCESS*
 *.pyc
+*.Rhistory
+local_data
+**/.Rproj.user/
+.idea
+**/*.Rproj
+**/.Rhistory
