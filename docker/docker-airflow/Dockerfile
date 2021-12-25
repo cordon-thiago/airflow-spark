@@ -1,8 +1,4 @@
-# VERSION 1.10.2
-# AUTHOR: Thiago Cordon Rodrigues
-# DESCRIPTION: Airflow container with JAVA 8 and SPARK binaries
-# BUILD: docker build --rm -t docker-airflow-spark:latest .
-# BASED ON: https://github.com/puckel/docker-airflow
+# AIRFLOW
 
 # stretch debian version allows JAVA JDK 8
 FROM python:3.7-stretch
@@ -11,13 +7,14 @@ FROM python:3.7-stretch
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
+ARG SPARK_VERSION
+ARG HADOOP_VERSION
+
 # Airflow
 ARG AIRFLOW_VERSION=2.2.2
 ARG AIRFLOW_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
-ARG SPARK_VERSION="3.2.0"
-ARG HADOOP_VERSION="3.2"
 ENV AIRFLOW_GPL_UNIDECODE yes
 
 # Define en_US.
@@ -136,4 +133,4 @@ EXPOSE 8080 5555 8793
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["webserver"] # set default arg for entrypoint
+CMD ["webserver"]

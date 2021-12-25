@@ -4,7 +4,7 @@ library(dplyr)
 # It works! https://spark.rstudio.com/
 
 
-sc <- spark_connect(master = "spark://spark:7077", spark_home = "~/spark/spark-3.1.2-bin-hadoop3.2")
+sc <- spark_connect(master = "spark://spark:7077")
 
 # copy mtcars into spark
 mtcars_tbl <- copy_to(sc, mtcars)
