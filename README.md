@@ -1,5 +1,17 @@
 # Airflow Spark
 
+Airflow: [http://localhost:8282](http://localhost:8282/)
+
+Spark Master: [http://localhost:8181](http://localhost:8181/)
+
+Rstudio: [http://localhost:8787](http://localhost:8787/)
+
+You will need to allocate enough docker memory, or this will not work. For instance, connection to Spark session will fail without reason
+
+Spark will also fail to allocate a new session if all the workers are busy with a previous one
+
+------
+
 This project contains the following containers:
 
 * postgres: Postgres database for Airflow metadata and a Test database to test whatever you want.
