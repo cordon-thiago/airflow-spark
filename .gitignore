@@ -11,3 +11,4 @@ local_data
 .idea
 **/*.Rproj
 **/.Rhistory
+**/metastore_db/
