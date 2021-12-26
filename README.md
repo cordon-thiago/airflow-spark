@@ -10,6 +10,10 @@ You will need to allocate enough docker memory, or this will not work. For insta
 
 Spark will also fail to allocate a new session if all the workers are busy with a previous one
 
+It is also delicate having the same versions of python in place
+
+Spark is a memory hog, watch out
+
 ------
 
 This project contains the following containers:
