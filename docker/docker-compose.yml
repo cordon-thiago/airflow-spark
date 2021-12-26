@@ -5,10 +5,10 @@ x-spark_path: &spark_path ../code/spark:/usr/local/spark/app #Spark Scripts (Mus
 x-resources_path: &resources_path ../resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
 
 x-spark_hadoop_version: &spark_hadoop_version
-    - SPARK_VERSION=3.1.2
+    - SPARK_VERSION=3.2.0
     - HADOOP_VERSION=3.2
 
-x-spark_image: &spark_image bitnami/spark:3.1.2
+x-spark_image: &spark_image bitnami/spark:3.2.0
 
 x-spark-worker-env: &spark-worker-env
     - SPARK_MODE=worker
@@ -98,6 +98,16 @@ services:
             - *resources_path
 
     spark-worker-2:
+        image: *spark_image
+        user: root
+        networks:
+            - default_net
+        environment: *spark-worker-env
+        volumes:
+            - *spark_path
+            - *resources_path
+
+    spark-worker-3:
         image: *spark_image
         user: root
         networks:
