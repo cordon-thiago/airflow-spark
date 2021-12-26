@@ -1,0 +1,23 @@
+---
+title: "explore_pyspark"
+output: html_document
+---
+
+# Basic working
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+```
+
+```{python}
+from pyspark import SparkContext
+from pyspark.sql import SparkSession
+```
+
+```{python}
+spark = SparkSession.builder.master('spark://spark:7077').getOrCreate()
+sc = spark.sparkContext
+```
+
+
