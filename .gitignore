@@ -12,3 +12,4 @@ local_data
 **/*.Rproj
 **/.Rhistory
 **/metastore_db/
+**/derby.log
