@@ -1,14 +1,24 @@
 version: "3.7"
 
-x-dag-path: &dag_path ../dags:/usr/local/airflow/dags #DAG folder
-x-spark_path: &spark_path ../spark/app:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-x-resources_path: &resources_path ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+x-dag-path: &dag_path ../code/dags:/usr/local/airflow/dags #DAG folder
+x-spark_path: &spark_path ../code/spark:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+x-resources_path: &resources_path ../resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
 
 x-spark_hadoop_version: &spark_hadoop_version
     - SPARK_VERSION=3.1.2
     - HADOOP_VERSION=3.2
 
 x-spark_image: &spark_image bitnami/spark:3.1.2
+
+x-spark-worker-env: &spark-worker-env
+    - SPARK_MODE=worker
+    - SPARK_MASTER_URL=spark://spark:7077
+    - SPARK_WORKER_MEMORY=1G
+    - SPARK_WORKER_CORES=1
+    - SPARK_RPC_AUTHENTICATION_ENABLED=no
+    - SPARK_RPC_ENCRYPTION_ENABLED=no
+    - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+    - SPARK_SSL_ENABLED=no
 
 
 services:  
@@ -71,8 +81,8 @@ services:
             - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
             - SPARK_SSL_ENABLED=no
         volumes:
-            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
-            - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+            - *spark_path
+            - *resources_path
         ports:
             - "8181:8080"
             - "7077:7077"
@@ -82,39 +92,29 @@ services:
         user: root
         networks:
             - default_net
-        environment:
-            - SPARK_MODE=worker
-            - SPARK_MASTER_URL=spark://spark:7077
-            - SPARK_WORKER_MEMORY=1G
-            - SPARK_WORKER_CORES=1
-            - SPARK_RPC_AUTHENTICATION_ENABLED=no
-            - SPARK_RPC_ENCRYPTION_ENABLED=no
-            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-            - SPARK_SSL_ENABLED=no
+        environment: *spark-worker-env
         volumes:
-            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
-            - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+            - *spark_path
+            - *resources_path
 
     spark-worker-2:
         image: *spark_image
         user: root
         networks:
             - default_net
-        environment:
-            - SPARK_MODE=worker
-            - SPARK_MASTER_URL=spark://spark:7077
-            - SPARK_WORKER_MEMORY=1G
-            - SPARK_WORKER_CORES=1
-            - SPARK_RPC_AUTHENTICATION_ENABLED=no
-            - SPARK_RPC_ENCRYPTION_ENABLED=no
-            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-            - SPARK_SSL_ENABLED=no
+        environment: *spark-worker-env
         volumes:
-            - ../spark/app:/usr/local/spark/app # Spark scripts folder (Must be the same path in airflow and Spark Cluster)
-            - ../spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+            - *spark_path
+            - *resources_path
 
     rstudio:
         image: rocker/rstudio:4.0.0
+        deploy:
+            resources:
+                limits:
+                    memory: 1024MB
+                reservations:
+                    memory: 600MB
         networks:
             - default_net
         build:
@@ -123,8 +123,8 @@ services:
             args: *spark_hadoop_version
         restart: on-failure
         volumes:
-            - ../rstudio/app_airflow_spark:/home/rstudio/app_airflow_spark
-            - ../rstudio/notebooks:/home/rstudio/notebooks
+            - ../code/app_airflow_spark:/home/rstudio/app_airflow_spark
+            - ../code/notebooks:/home/rstudio/notebooks
         environment:
             - PASSWORD=airflow
         ports:
