@@ -10,14 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(DBI)
 ```
 
-Jump into the container and execute this to create a clean database
-```{sql}
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-	CREATE USER test WITH PASSWORD 'postgres';
-	CREATE DATABASE test;
-	GRANT ALL PRIVILEGES ON DATABASE test TO test;
-EOSQL
-```
 
 ```{r}
 # Connect to "jdbc:postgresql://postgres:5432/test"

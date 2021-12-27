@@ -1,19 +1,32 @@
 import sys
+from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 # Create spark session
-spark = (SparkSession
-    .builder
+#conf = SparkConf().setAppName("Spark Read Postgres").setMaster("spark://spark:7077").setConfig()
+#spark = SparkSession.builder.config(conf=conf).getOrCreate()
+#sc = spark.sparkContext
+
+spark = SparkSession \
+    .builder \
+    .appName("Spark Read Postgres") \
+    .master("spark://spark:7077") \
+    .config("spark.jars", "/usr/local/spark/resources/jars/postgresql-9.4.1207.jar") \
     .getOrCreate()
-)
+    
+sc = spark.sparkContext
 
 ####################################
 # Parameters
 ####################################
-postgres_db = sys.argv[1]
-postgres_user = sys.argv[2]
-postgres_pwd = sys.argv[3]
+#postgres_db = sys.argv[1]
+#postgres_user = sys.argv[2]
+#postgres_pwd = sys.argv[3]
+
+postgres_db = "test"
+postgres_user = "test"
+postgres_pwd = "postgres"
 
 ####################################
 # Read Postgres
@@ -22,21 +35,11 @@ print("######################################")
 print("READING POSTGRES TABLES")
 print("######################################")
 
-df_movies = (
+df_pets = (
     spark.read
     .format("jdbc")
     .option("url", postgres_db)
-    .option("dbtable", "public.movies")
-    .option("user", postgres_user)
-    .option("password", postgres_pwd)
-    .load()
-)
-
-df_ratings = (
-    spark.read
-    .format("jdbc")
-    .option("url", postgres_db)
-    .option("dbtable", "public.ratings")
+    .option("dbtable", "pets")
     .option("user", postgres_user)
     .option("password", postgres_pwd)
     .load()

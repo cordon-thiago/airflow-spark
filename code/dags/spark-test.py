@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 ###############################################
 # Parameters
 ###############################################
-spark_master = "spark://spark:7077"
-spark_app_name = "Spark Hello World"
 file_path = "/usr/local/spark/app/spark.Rproj"
 
 ###############################################

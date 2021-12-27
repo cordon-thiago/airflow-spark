@@ -43,10 +43,10 @@ start = DummyOperator(task_id="start", dag=dag)
 spark_job_load_postgres = SparkSubmitOperator(
     task_id="spark_job_load_postgres",
     application="/usr/local/spark/app/load-postgres.py", # Spark application path created in airflow and spark cluster
-    name="load-postgres",
+    #name="load-postgres",
     conn_id="spark_default",
     verbose=1,
-    conf={"spark.master":spark_master},
+    #conf={"spark.master":spark_master},
     application_args=[movies_file,ratings_file,postgres_db,postgres_user,postgres_pwd],
     jars=postgres_driver_jar,
     driver_class_path=postgres_driver_jar,

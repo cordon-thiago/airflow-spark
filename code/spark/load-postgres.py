@@ -1,13 +1,17 @@
 import sys
 from pyspark.sql import SparkSession
+from pyspark import SparkConf, SparkContext
 from pyspark.sql.functions import from_unixtime, col, to_timestamp
 from pyspark.sql.types import DoubleType
 
 # Create spark session
-spark = (SparkSession
-    .builder
-    .getOrCreate()
-)
+# spark = (SparkSession
+#     .builder
+#     .getOrCreate()
+# )
+
+conf = SparkConf().setAppName("load-postgres").setMaster("spark://spark:7077")
+spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
 ####################################
 # Parameters
@@ -32,20 +36,20 @@ df_movies_csv = (
     .load(movies_file)
 )
 
-df_ratings_csv = (
-    spark.read
-    .format("csv")
-    .option("header", True)
-    .load(ratings_file)
-    .withColumnRenamed("timestamp","timestamp_epoch")
-)
-
-# Convert epoch to timestamp and rating to DoubleType
-df_ratings_csv_fmt = (
-    df_ratings_csv
-    .withColumn('rating', col("rating").cast(DoubleType()))
-    .withColumn('timestamp', to_timestamp(from_unixtime(col("timestamp_epoch"))))
-)
+# df_ratings_csv = (
+#     spark.read
+#     .format("csv")
+#     .option("header", True)
+#     .load(ratings_file)
+#     .withColumnRenamed("timestamp","timestamp_epoch")
+# )
+# 
+# # Convert epoch to timestamp and rating to DoubleType
+# df_ratings_csv_fmt = (
+#     df_ratings_csv
+#     .withColumn('rating', col("rating").cast(DoubleType()))
+#     .withColumn('timestamp', to_timestamp(from_unixtime(col("timestamp_epoch"))))
+# )
 
 ####################################
 # Load data to Postgres
@@ -58,22 +62,26 @@ print("######################################")
     df_movies_csv.write
     .format("jdbc")
     .option("url", postgres_db)
-    .option("dbtable", "public.movies")
+    .option("dbtable", "iris")
     .option("user", postgres_user)
     .option("password", postgres_pwd)
     .mode("overwrite")
     .save()
 )
 
-(
-     df_ratings_csv_fmt
-     .select([c for c in df_ratings_csv_fmt.columns if c != "timestamp_epoch"])
-     .write
-     .format("jdbc")
-     .option("url", postgres_db)
-     .option("dbtable", "public.ratings")
-     .option("user", postgres_user)
-     .option("password", postgres_pwd)
-     .mode("overwrite")
-     .save()
-)
+print("######################################")
+print("DONE")
+print("######################################")
+
+# (
+#      df_ratings_csv_fmt
+#      .select([c for c in df_ratings_csv_fmt.columns if c != "timestamp_epoch"])
+#      .write
+#      .format("jdbc")
+#      .option("url", postgres_db)
+#      .option("dbtable", "public.ratings")
+#      .option("user", postgres_user)
+#      .option("password", postgres_pwd)
+#      .mode("overwrite")
+#      .save()
+# )
