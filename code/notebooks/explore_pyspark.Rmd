@@ -19,5 +19,11 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.master('spark://spark:7077').getOrCreate()
 sc = spark.sparkContext
 ```
+```{python}
+iris_tbl = spark.createDataFrame(r.iris)
+```
 
+```{python}
+iris_tbl.show(4)
+```
 
