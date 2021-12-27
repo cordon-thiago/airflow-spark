@@ -54,6 +54,8 @@ services:
             - EXECUTOR=Local
             - FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
             - AIRFLOW__CORE__FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
+            - AIRFLOW_CONN_POSTGRES_TEST=postgres://test:postgres@postgres:5432/test
+            - AIRFLOW_CONN_SPARK_DEFAULT=spark://spark:7077
         volumes:
             - *dag_path
             - *spark_path
@@ -120,6 +122,7 @@ services:
     rstudio:
         image: rocker/rstudio:4.0.0
         deploy:
+            # does this even make sense?
             resources:
                 limits:
                     memory: 1024MB
@@ -135,6 +138,8 @@ services:
         volumes:
             - ../code/app_airflow_spark:/home/rstudio/app_airflow_spark
             - ../code/notebooks:/home/rstudio/notebooks
+            - ../code/dags:/home/rstudio/dags
+            - ../code/spark:/home/rstudio/spark
         environment:
             - PASSWORD=airflow
         ports:

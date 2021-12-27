@@ -22,26 +22,22 @@ RUN cd "/tmp" && \
         cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
         rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
 
-
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir pandas matplotlib pyspark
-
-RUN install2.r --error --skipinstalled --ncpus -1 \
-    shinydashboard \
-    here \
-    sparklyr
-
-
 RUN apt-get -y update && apt-get install -y \
    openjdk-8-jdk \
    && apt-get clean \
    && rm -rf /var/lib/apt/lists/
 
 # Install further R packages
-RUN install2.r --error --deps TRUE \
+RUN install2.r --error --skipinstalled --deps TRUE \
+   shinydashboard \
+   here \
+   sparklyr \
    rJava \
    RJDBC \
    odbc \
    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 RUN R CMD javareconf
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir pandas matplotlib pyspark apache-airflow psycopg2
