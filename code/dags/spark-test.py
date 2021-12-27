@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 ###############################################
 spark_master = "spark://spark:7077"
 spark_app_name = "Spark Hello World"
-file_path = "/usr/local/spark/resources/data/airflow.cfg"
+file_path = "/usr/local/spark/app/spark.Rproj"
 
 ###############################################
 # DAG Definition
@@ -38,10 +38,10 @@ start = DummyOperator(task_id="start", dag=dag)
 spark_job = SparkSubmitOperator(
     task_id="spark_job",
     application="/usr/local/spark/app/hello-world.py", # Spark application path created in airflow and spark cluster
-    name=spark_app_name,
+    #name=spark_app_name,
     conn_id="spark_default",
     verbose=1,
-    conf={"spark.master":spark_master},
+    #conf={"spark.master":spark_master},
     application_args=[file_path],
     dag=dag)
 

@@ -5,13 +5,13 @@ from pyspark.sql import SparkSession
 ##########################
 # You can configure master here if you do not pass the spark.master paramenter in conf
 ##########################
-#master = "spark://spark:7077"
-#conf = SparkConf().setAppName("Spark Hello World").setMaster(master)
+master = "spark://spark:7077"
+conf = SparkConf().setAppName("Spark Hello World").setMaster(master)
 #sc = SparkContext(conf=conf)
-#spark = SparkSession.builder.config(conf=conf).getOrCreate()
+spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
 # Create spark context
-sc = SparkContext()
+sc = spark.sparkContext
 
 # Get the second argument passed to spark-submit (the first is the python app)
 logFile = sys.argv[1]
