@@ -1,0 +1,72 @@
+---
+title: "explore_postgres_r"
+output: html_document
+---
+
+# R
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(DBI)
+```
+
+Jump into the container and execute this to create a clean database
+```{sql}
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+	CREATE USER test WITH PASSWORD 'postgres';
+	CREATE DATABASE test;
+	GRANT ALL PRIVILEGES ON DATABASE test TO test;
+EOSQL
+```
+
+```{r}
+# Connect to "jdbc:postgresql://postgres:5432/test"
+con <- DBI::dbConnect(
+  drv = RPostgres::Postgres(),
+  host = "postgres",
+  port=5432,
+  dbname = "test",
+  user = "test",
+  password = "postgres"
+  )
+```
+
+Some experimentation
+```{r}
+dbListTables(con)
+dbWriteTable(con, "mtcars", mtcars)
+dbListTables(con)
+
+dbListFields(con, "mtcars")
+dbReadTable(con, "mtcars")
+
+# You can fetch all results:
+res <- dbSendQuery(con, "SELECT * FROM mtcars WHERE cyl = 4")
+dbFetch(res)
+dbClearResult(res)
+
+# Or a chunk at a time
+res <- dbSendQuery(con, "SELECT * FROM mtcars WHERE cyl = 4")
+while(!dbHasCompleted(res)){
+  chunk <- dbFetch(res, n = 5)
+  print(nrow(chunk))
+}
+# Clear the result
+dbClearResult(res)
+
+# Disconnect from the database
+dbDisconnect(con)
+```
+
+```{r}
+dbGetQuery(conn = con, "select * from mtcars limit 10")
+```
+
+```{sql connection=con}
+SELECT drat, wt AS foo
+FROM mtcars
+WHERE carb = 1
+```
+
+
+# Python
