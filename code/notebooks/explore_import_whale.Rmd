@@ -1,0 +1,86 @@
+---
+title: "explore_import_whalw"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+```
+
+```{python}
+import os
+import pandas as pd
+from pathlib import Path
+```
+
+```{python}
+path_whale = Path("/usr/local/remote_data/whale")
+```
+
+```{python}
+file = os.listdir(path_whale)[0]
+
+df = pd.read_csv(path_whale / file, sep = '\t')
+
+```
+
+```{python}
+ean_raw = pd.read_csv(
+    path_whale / file,
+    sep='\t',
+    index_col=False,
+    names = ['date', 'time', 'consumption'],
+    skiprows=1,
+    dtype = {'date': 'str', 'time':'str', 'consumption':'float'},
+    )
+    
+ean_id = pd.read_csv(path_whale / file, index_col=False, sep='\t', nrows=0).columns.tolist()[2]
+
+ean_clean = ean_raw.copy(deep=True)
+
+ean_clean['datetime'] = ean_clean['date'] + " " + ean_clean['time']
+ean_clean['datetime'] = pd.to_datetime(ean_clean['datetime'], format='%Y.%m.%d %H:%M', utc = True)
+
+ean_clean['id'] = ean_id
+ean_clean = ean_clean[['id', 'datetime', 'consumption']]
+ean_clean
+```
+
+```{python}
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as sf
+```
+
+```{python}
+spark = SparkSession.builder.master('spark://spark:7077').getOrCreate()
+```
+```{python}
+df2 = spark.read.option("delimiter", "\t") \
+  .option("header", "true") \
+  .csv('/usr/local/remote_data/whale/871685900000000059_11059.csv')
+  
+code_id = df2.columns[2]
+
+df3 = df2 \
+.withColumnRenamed("#","date") \
+.withColumnRenamed("CODE","time") \
+.withColumnRenamed(code_id,"consumption") \
+.withColumn('datetime', sf.to_timestamp(
+  sf.concat(sf.col('date'), sf.lit(' '), sf.col('time'), sf.lit(':00')),
+  'yyyy.MM.dd HH:mm:ss'
+  )
+)
+  
+```
+
+
+
+```{python}
+iris_tbl = spark.createDataFrame(r.iris)
+```
+
+```{python}
+iris_tbl.show(4)
+```
+
