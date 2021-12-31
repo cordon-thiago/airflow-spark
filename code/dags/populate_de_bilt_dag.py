@@ -74,8 +74,7 @@ def _parse_data():
             
         station_code = df["# STN"][0]
         
-        df['datetime'] = pd.to_datetime(df['YYYYMMDD'], format='%Y%m%d', utc=False)
-        df['datetime'] = df['datetime'].dt.tz_localize('CET')
+        df['datetime'] = pd.to_datetime(df['YYYYMMDD'], format='%Y%m%d', utc=True)
         df['datetime'] = df['datetime'] + pd.to_timedelta(df['HH']-1, 'hours')
         
         df = df.rename(columns={"T": "temperature", "Q": "solar_radiation"})
