@@ -1,9 +1,9 @@
 version: "3.7"
 
-x-dag-path: &dag_path ../code/dags:/usr/local/airflow/dags #DAG folder
-x-spark_path: &spark_path ../code/spark:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-x-resources_path: &resources_path ../resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-x-data_storage_path: &data_storage_path ../local_data:/usr/local/remote_data
+x-dag-path: &dag_path ./code/dags:/usr/local/airflow/dags #DAG folder
+x-spark_path: &spark_path ./code/spark:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+x-resources_path: &resources_path ./resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+x-data_storage_path: &data_storage_path ./local_data:/usr/local/remote_data
 
 x-spark_hadoop_version: &spark_hadoop_version
     - SPARK_VERSION=3.2.0
@@ -27,7 +27,6 @@ services:
     postgres:
         #image: postgres:13
         build:
-            context: ..
             dockerfile: docker/docker-postgres-timescale/Dockerfile
         networks:
             - default_net
@@ -45,7 +44,6 @@ services:
     # airflow LocalExecutor
     airflow-webserver:
         build:
-            context: ..
             dockerfile: docker/docker-airflow/Dockerfile
             args: *spark_hadoop_version
         restart: always
@@ -140,15 +138,14 @@ services:
         networks:
             - default_net
         build:
-            context: ..
             dockerfile: docker/docker-rstudio/Dockerfile
             args: *spark_hadoop_version
         restart: on-failure
         volumes:
-            - ../code/app_airflow_spark:/home/rstudio/app_airflow_spark
-            - ../code/notebooks:/home/rstudio/notebooks
-            - ../code/dags:/home/rstudio/dags
-            - ../code/spark:/home/rstudio/spark
+            - ./code/app_airflow_spark:/home/rstudio/app_airflow_spark
+            - ./code/notebooks:/home/rstudio/notebooks
+            - ./code/dags:/home/rstudio/dags
+            - ./code/spark:/home/rstudio/spark
             - *resources_path
             - *data_storage_path
         environment:
