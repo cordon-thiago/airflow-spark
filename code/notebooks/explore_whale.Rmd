@@ -1,0 +1,277 @@
+---
+title: "explore_whale"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(DBI)
+library(dygraphs)
+library(xts)
+library(knitr)
+
+# Connect to "jdbc:postgresql://postgres:5432/test"
+con <- DBI::dbConnect(
+  drv = RPostgres::Postgres(),
+  host = "postgres",
+  port=5432,
+  dbname = "test",
+  user = "test",
+  password = "postgres"
+  )
+
+
+df_to_ts <- function(df){
+  xts(
+    x = df[,2:ncol(df)],
+    order.by = df[,1]
+    )
+}
+
+gen_dygraph <- function(df){
+  dygraph(df_to_ts(df)) %>% 
+  dyRangeSelector() %>% 
+  dyOptions(connectSeparatedPoints=TRUE)
+}
+
+```
+
+This is an exploration of data from 100 files of B2B connections ("whales" is just a codename for B2B consumption) I imported in a SQL-for-timeseries database I spined up in my computer (https://www.timescale.com/).
+
+The examples below are few things that are quite trivial to do with queries, but I find hard to do with the platform (using rules).
+
+# Tables
+First, the setup I did, with two tables:
+
+"Whales" (B2B consumption): `whale_historical_ptu`
+```{sql connection=con}
+select *
+from whale_historical_ptu
+limit 10
+```
+
+KNMI data (for the moment, only "De Bilt" station): `knmi_weather_hour`
+```{sql connection=con}
+select *
+from knmi_weather_hour
+limit 10
+```
+
+# Data Exploration
+
+
+How complete is the data? connections per time range (from, until)
+```{sql connection=con}
+select
+connection_id,
+min(datetime) as dttm_from,
+max(datetime) as dttm_until,
+(max(datetime) - min(datetime)) as dttm_range
+FROM (
+	select *
+	from whale_historical_ptu
+	where consumption is not null 
+) as cons
+group by connection_id
+order by dttm_range desc
+```
+
+However, there are some connections that are not that long; something to take into account for later data aggregation
+```{sql connection=con}
+select
+connection_id,
+min(datetime) as dttm_from,
+max(datetime) as dttm_until,
+(max(datetime) - min(datetime)) as dttm_range
+FROM (
+	select *
+	from whale_historical_ptu
+	where consumption is not null 
+) as cons
+group by connection_id
+-- now we arrange by lower `dttm_range first`
+order by dttm_range
+```
+
+Indeed, we observe that from the 100 files uploaded, there is data from just 40 connections
+```{sql connection=con}
+select count(distinct connection_id)
+from whale_historical_ptu
+```
+
+Easy visualization and left join with weather data
+```{sql connection=con, output.var="one_connection_with_weather"}
+select 
+    whp.datetime, 
+    whp.consumption,
+    kwh.temperature,
+    kwh.solar_radiation
+  from whale_historical_ptu whp
+left join knmi_weather_hour kwh 
+on whp.datetime = kwh.datetime 
+where whp.connection_id = '871685900000000059MV'
+and consumption is not null
+order by whp.datetime
+```
+
+```{r echo=FALSE}
+kable(head(one_connection_with_weather))
+```
+
+```{r echo=FALSE}
+gen_dygraph(one_connection_with_weather)
+```
+Note how in this case there is a clear relation between client consumption and solar radiation, hinting strongly that this client has solar panels. However, there is one one datapoint where consumption is positive (redelivers).
+
+# Solar panels detection
+
+Summary of connections with positive consumption values
+```{sql connection=con}
+select connection_id, count(*) as n_positive
+from whale_historical_ptu
+where consumption > 0
+group by connection_id
+```
+Although we know, from the example right before, that there can be many false negatives (clients with solar that never get to redeliver). Hence, a more detailed examination would be needed (the easiest would involve regression coefficients of a linear regression)
+
+Label connections with whether they have solar (in accordance with a naive rule of thumb), and the earliest detected date:
+```{sql connection=con}
+with positives AS(
+	SELECT DISTINCT ON (connection_id)
+	       connection_id,
+	       datetime as earliest_positive
+	FROM   (
+		select * 
+		from whale_historical_ptu 
+		ORDER  BY datetime desc
+	) X
+	-- find just when there is redelivery
+	where consumption > 0
+), joined as (
+	select 
+		distinct whp.connection_id,
+		positives.earliest_positive
+	from whale_historical_ptu whp
+	left join positives on whp.connection_id = positives.connection_id
+)
+
+select 
+	connection_id,
+	case when joined.earliest_positive is null then 'FALSE' else 'TRUE' end as has_solar,
+	earliest_positive as label_from
+from joined
+order by has_solar desc
+```
+This is a one-query replacement of writing a rule in the platform. The only thing left to expand it formatting the result in a JSON and `UPDATE` accordingly.
+
+# Corona-impacted time series
+
+Easy aggregation
+```{sql connection=con, output.var="agg_sum_by_day"}
+select 
+  time_bucket('1 day', datetime) AS xday, 
+  sum(consumption)
+from whale_historical_ptu
+where consumption is not null
+and connection_id in (
+  -- subquery to select the timeseries that seem complete (see above)
+	select connection_id
+  from whale_historical_ptu
+  where consumption is not null
+  group by connection_id
+  having count(*) > 90000
+)
+group by xday
+```
+
+```{r echo=FALSE}
+gen_dygraph(agg_sum_by_day)
+```
+There is something weird here. The consumption in coronatimes seems abnormally negative (meaning it is higher). This can be due to a lot of possible factors in the data.
+
+We can check the rate of change in coronatimes against the same time in 2019:
+
+```{sql connection=con, output.var="corona_change"}
+
+with picked_connections as (
+-- again, we subset the connections that have a good amount of data
+	select connection_id
+	from whale_historical_ptu
+	where consumption is not null
+	group by connection_id
+	having count(*) > 90000
+),
+data_2019 as (
+	select
+	connection_id, 
+	avg(consumption) as avg_range_2019
+	from whale_historical_ptu
+	where datetime between '2019-03-15' and '2019-04-30'
+	and connection_id in (select connection_id from picked_connections)
+	group by connection_id
+),
+data_2020 as (
+	select
+	connection_id, 
+	avg(consumption) as avg_range_2020
+	from whale_historical_ptu
+	where datetime between '2020-03-15' and '2020-04-30'
+	and connection_id in (select connection_id from picked_connections)
+	group by connection_id
+)
+
+select 
+	data_2019.connection_id,
+	avg_range_2019,
+	avg_range_2020,
+	avg_range_2020 / avg_range_2019 as ratio_corona_change
+from data_2019
+left join data_2020
+on data_2019.connection_id = data_2020.connection_id
+order by ratio_corona_change desc
+```
+
+Top 10 winners of corona (multiplied or increased the consumption)
+```{r echo=FALSE}
+kable(head(corona_change, 10))
+```
+
+Top 10 losers (decreased consumption)
+```{r echo=FALSE}
+kable(head(corona_change, 10))
+```
+
+Most businesses saw reduced their activity, but for instance there is one that *almost multiplied it by 7*
+
+(The following queries aggregate summing the consumption per day just to remove points to draw in the graphs)
+
+```{sql connection=con, output.var="times_7"}
+select 
+    time_bucket('1 day', datetime) AS xday,
+    sum(consumption)
+from whale_historical_ptu
+where connection_id = '871685900000000233MV'
+and consumption is not null
+group by xday
+```
+
+```{r echo=FALSE}
+gen_dygraph(times_7)
+```
+But is this data even reliable, or is this a measurement error? Does this explain the odd aggregations shown above? Are there other outliers that explain the peak of consumption at end February?
+
+On the other side, we have the most punished business, that saw reduced its consumption a 64 %: 
+
+```{sql connection=con, output.var="times_034"}
+select 
+    time_bucket('1 day', datetime) AS xday,
+    sum(consumption)
+from whale_historical_ptu
+where connection_id = '871685900000000356MV'
+and consumption is not null
+group by xday
+```
+
+```{r echo=FALSE}
+gen_dygraph(times_034)
+```
