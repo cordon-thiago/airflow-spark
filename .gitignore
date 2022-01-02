@@ -13,3 +13,7 @@ local_data
 **/.Rhistory
 **/metastore_db/
 **/derby.log
+**/.cache/
+**/.local/
+**/.config/
+**/.bash_history
