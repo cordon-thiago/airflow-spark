@@ -35,9 +35,13 @@ RUN install2.r --error --skipinstalled --deps TRUE \
    rJava \
    RJDBC \
    odbc \
+   zoo \
+   dygraphs \
    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 RUN R CMD javareconf
 
+# python dependencies (possibility of unifying them?)
+COPY docker/docker-rstudio/requirements.txt /requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir pandas matplotlib pyspark apache-airflow psycopg2
+    pip install -r requirements.txt
