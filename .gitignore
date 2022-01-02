@@ -17,3 +17,4 @@ local_data
 **/.local/
 **/.config/
 **/.bash_history
+code/airflow
