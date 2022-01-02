@@ -6,7 +6,6 @@ import psycopg2
 import requests
 import zipfile
 import os
-import shutil
 
 import pandas as pd
 import datetime
