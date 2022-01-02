@@ -85,12 +85,13 @@ RUN apt-get update && \
     apt-get install -y software-properties-common && \
     apt-get install -y gnupg2 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A && \
-    add-apt-repository "deb http://security.debian.org/debian-security stretch/updates main" && \ 
+    add-apt-repository "deb http://security.debian.org/debian-security stretch/updates main" && \
     apt-get update && \
     apt-get install -y openjdk-8-jdk && \
-    pip freeze && \
+   pip freeze && \
     java -version $$ \
     javac -version
+
 
 # Setup JAVA_HOME 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

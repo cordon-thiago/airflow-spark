@@ -5,6 +5,7 @@ x-spark_path: &spark_path ./code/spark:/usr/local/spark/app #Spark Scripts (Must
 x-resources_path: &resources_path ./resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
 x-data_storage_path: &data_storage_path ./local_data:/usr/local/remote_data
 x-modules_path: &modules_path ./code/modules:/usr/local/modules
+x-sql_path: &sql_path ./code/sql:/usr/local/sql
 
 x-spark_hadoop_version: &spark_hadoop_version
     - SPARK_VERSION=3.2.0
@@ -54,6 +55,7 @@ services:
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local
+            - AIRFLOW__CORE__LOAD_EXAMPLES=False
             - FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
             - AIRFLOW__CORE__FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
             - AIRFLOW_CONN_POSTGRES_TEST=postgres://test:postgres@postgres:5432/test
@@ -63,6 +65,8 @@ services:
             - *spark_path
             - *resources_path
             - *data_storage_path
+            - *modules_path
+            - *sql_path
         ports:
             - "8282:8282"
         command: webserver
@@ -71,6 +75,29 @@ services:
             interval: 30s
             timeout: 30s
             retries: 3
+
+    rstudio:
+        deploy:
+            resources:
+                reservations:
+                    memory: 800MB
+        networks:
+            - default_net
+        build:
+            dockerfile: docker/docker-rstudio/Dockerfile
+            args: *spark_hadoop_version
+        restart: on-failure
+        volumes:
+            - ./code:/home/rstudio
+            - *resources_path
+            - *data_storage_path
+            - *modules_path
+            - *sql_path
+        environment:
+            - PASSWORD=airflow
+        ports:
+            - "8888:8787"
+            - "3737:3737"
 
     # Spark with 3 workers
     spark:
@@ -125,30 +152,5 @@ services:
             - *spark_path
             - *resources_path
             - *data_storage_path
-
-    rstudio:
-        deploy:
-            # does this even make sense?
-            resources:
-                limits:
-                    memory: 1024MB
-                reservations:
-                    memory: 600MB
-        networks:
-            - default_net
-        build:
-            dockerfile: docker/docker-rstudio/Dockerfile
-            args: *spark_hadoop_version
-        restart: on-failure
-        volumes:
-            - ./code:/home/rstudio
-            - *resources_path
-            - *data_storage_path
-            - *modules_path
-        environment:
-            - PASSWORD=airflow
-        ports:
-            - "8888:8787"
-            - "3737:3737"
 networks:
     default_net:
