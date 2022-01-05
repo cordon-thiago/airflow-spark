@@ -1,6 +1,6 @@
 # RSTUDIO
 
-FROM rocker/rstudio:4.1.0
+FROM rocker/rstudio:4.0.0
 
 ARG SPARK_VERSION
 ARG HADOOP_VERSION
