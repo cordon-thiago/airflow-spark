@@ -275,3 +275,80 @@ group by xday
 ```{r echo=FALSE}
 gen_dygraph(times_034)
 ```
+
+## Looking for gaps
+Not a single 15-min gap in the data
+```{sql connection=con}
+with tbl_ranges as (
+	select
+	connection_id,
+	min(datetime) as dttm_from,
+	max(datetime) as dttm_until
+	FROM (
+		select *
+		from whale_historical_ptu
+		where consumption is not null 
+	) as cons
+	group by connection_id
+),
+tbl_trimmed as (
+	select * from 
+	whale_historical_ptu whp
+	right join (
+		select datetime from datetime_amsterdam_properties
+		) dap
+		on whp.datetime = dap.datetime
+	left join tbl_ranges
+	on whp.connection_id = tbl_ranges.connection_id 
+	  where whp.datetime >= tbl_ranges.dttm_from 
+	  and whp.datetime <= tbl_ranges.dttm_until
+)
+
+select count(*)
+from tbl_trimmed
+where consumption is null
+```
+
+## Clustering
+
+```{sql connection=con, output.var="df_cluster"}
+with tbl_dttm as (
+	select connection_id,
+	consumption,
+	datetime at time zone 'Europe/Amsterdam' as dttm_amsterdam,
+	date_part('hour', datetime at time zone 'Europe/Amsterdam') as hour_amsterdam,
+	case when 
+		date_part('dow', datetime at time zone 'Europe/Amsterdam') in (6,0) then true
+		else false
+	end as is_weekend
+	from whale_historical_ptu whp
+), 
+tbl_avg as (
+	select 
+	connection_id,
+	(hour_amsterdam+1) + (cast(is_weekend as int)*24) as cardinal_hour,
+	avg(consumption) as avg_consumption
+	from tbl_dttm
+	group by connection_id, cardinal_hour
+),
+tbl_sum as (
+	select connection_id, 
+	sum(avg_consumption) as avg_sum_consumption
+	from tbl_avg
+	group by connection_id
+)
+
+select 
+	tbl_avg.connection_id,
+	tbl_avg.cardinal_hour,
+	tbl_avg.avg_consumption,
+	tbl_avg.avg_consumption / tbl_sum.avg_sum_consumption as p_avg_consumption
+from tbl_avg
+left join tbl_sum
+on tbl_avg.connection_id = tbl_sum.connection_id
+```
+
+```{r}
+ggplot(df_cluster, aes(x = cardinal_hour, y = p_avg_consumption, color = connection_id)) + geom_line()
+```
+
