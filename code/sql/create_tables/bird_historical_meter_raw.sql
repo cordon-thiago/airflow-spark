@@ -9,8 +9,9 @@ CREATE TABLE IF NOT EXISTS bird_historical_meter_raw (
    label VARCHAR(20),
    customer_id VARCHAR(20),
    ean_code VARCHAR(20),
-   collector VARCHAR (3),
-   product VARCHAR(15)
+   product VARCHAR(3),
+   collector VARCHAR (20)
+   
 );
 
 SELECT create_hypertable('bird_historical_meter_raw','measurement_timestamp', if_not_exists => TRUE);

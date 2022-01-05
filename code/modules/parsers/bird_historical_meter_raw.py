@@ -7,7 +7,7 @@ import pandas as pd
 
 def parse(file):
     column_names = ['event_instance_id', 'event_timestamp', 'channel', 'label', 'customer_id', 'ean_code',
-                    'ean_code_grid_operator', 'collector', 'product', 'deleted', 'measurement_timestamp',
+                    'ean_code_grid_operator', 'product', 'collector', 'deleted', 'measurement_timestamp',
                     'measurement_value']
     df = pd.read_csv(
         file,
