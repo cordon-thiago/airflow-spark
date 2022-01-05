@@ -13,4 +13,6 @@ SQLAlchemy==1.3.24
 psycopg2==2.9.2
 workalendar==16.2.0
 pandas==1.3.5
+jinjasql==0.1.8
+scikit-learn==1.0.2
 
