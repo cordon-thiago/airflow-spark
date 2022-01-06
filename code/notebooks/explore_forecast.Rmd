@@ -3,7 +3,7 @@ title: "explore_reticulate"
 output: html_document
 ---
 
-# Basic working
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -11,6 +11,76 @@ library(reticulate)
 library(dplyr)
 library(ggplot2)
 ```
+
+
+# R
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(DBI)
+```
+
+
+```{r}
+# Connect to "jdbc:postgresql://postgres:5432/test"
+con <- DBI::dbConnect(
+  drv = RPostgres::Postgres(),
+  host = "postgres",
+  port=5432,
+  dbname = "test",
+  user = "test",
+  password = "postgres"
+  )
+```
+
+```{r}
+pick_connection_id <- '871685900000000059MV'
+pick_model_id = '451c7004-a0bb-4993-a437-771d2a489da0'
+```
+
+```{sql connection=con, output.var='model_df'}
+select *
+from whale_models
+where connection_id = ?pick_connection_id
+```
+
+```{sql connection=con, output.var='actuals_df'}
+select datetime, consumption
+from whale_historical_ptu whp 
+where connection_id = ?pick_connection_id
+and consumption is not null
+```
+
+
+```{sql connection=con, output.var='backcast_df'}
+select *
+from whale_backcast wb
+where model_id = ?pick_model_id
+```
+
+```{r}
+backcast_df <- readr::read_csv(glue::glue("/usr/local/remote_data/whale_backcast/{backcast_df$id}.csv"))
+```
+```{r}
+library(zoo)
+library(dygraphs)
+library(xts)
+df_to_ts <- function(df){
+  xts(
+    x = df[,2:ncol(df)],
+    order.by = df[,1]
+    )
+}
+
+full_join(actuals_df, backcast_df, by = "datetime") %>% 
+  df_to_ts() %>% 
+  dygraph() %>% 
+  dyRangeSelector()
+```
+
+
+
+# Basic working (outdated)
 
 ```{python}
 import pandas
@@ -78,5 +148,6 @@ from sklearn.linear_model import LinearRegression
 
 ml_model = LinearRegression().fit(c_features_train, c_labels_train)
 ```
+
 
 

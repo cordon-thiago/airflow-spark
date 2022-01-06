@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS whale_models (
+   id UUID PRIMARY KEY,
+   datetime_insert TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+   date_train_from TIMESTAMP WITH TIME ZONE NOT NULL,
+   date_train_until TIMESTAMP WITH TIME ZONE NOT NULL,
+   connection_id VARCHAR(20) NOT NULL,
+   method VARCHAR(10)
+);

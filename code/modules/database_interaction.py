@@ -3,8 +3,10 @@ import psycopg2.extras as extras
 from jinjasql import JinjaSql
 import pandas.io.sql as sqlio
 
-
 def postgres_connect():
+    # so it is possible to work with UUID types
+    psycopg2.extras.register_uuid()
+    
     return psycopg2.connect(
         host = "postgres",
         database = "test",
@@ -40,13 +42,11 @@ def sql_file_to_df(conn, file, params=None):
     Use JinjaSql to prepare safe sql statements from file
     """
     sql_string = open(file).read()
-
     if params is not None:
         sql_string, params = JinjaSql().prepare_query(
             source = sql_string,
             data = params
         )
-        
     return sqlio.read_sql_query(sql=sql_string, con=conn, params=params)
 
 
