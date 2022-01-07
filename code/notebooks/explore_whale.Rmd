@@ -352,3 +352,30 @@ on tbl_avg.connection_id = tbl_sum.connection_id
 ggplot(df_cluster, aes(x = cardinal_hour, y = p_avg_consumption, color = connection_id)) + geom_line()
 ```
 
+## Looking for airco
+```{sql connection=con}
+select
+whp.connection_id,
+corr (whp.consumption, kwh.temperature) as cons_temp_corr
+from whale_historical_ptu whp
+left join knmi_weather_hour kwh 
+on whp.datetime = kwh.datetime
+where kwh.temperature >=20
+group by whp.connection_id
+
+```
+
+## Looking for weekly autocorrelation
+```{sql connection=con}
+select whp.connection_id, 
+corr (whp.consumption, tbl_week_ago.consumption_one_week_ago) as cons_week_autocorr
+from whale_historical_ptu whp
+left join (
+	select connection_id, datetime + interval '7 hours' as datetime_delay, consumption as consumption_one_week_ago
+	from whale_historical_ptu whp 
+) tbl_week_ago
+on whp.connection_id = tbl_week_ago.connection_id and whp.datetime = tbl_week_ago.datetime_delay
+group by whp.connection_id
+
+```
+
