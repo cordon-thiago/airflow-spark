@@ -163,7 +163,7 @@ def _whale_consumption_factors_labels(conn, connection_id, date_from, date_until
         }
     )
     
-    if df.empty
+    if df_fetch.empty:
         raise AssertionError(
             f"no data was retrieved from the database for connection_id {connection_id}, date_from {date_from} and date_until {date_until}")
         
