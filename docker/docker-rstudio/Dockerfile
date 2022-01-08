@@ -37,6 +37,8 @@ RUN install2.r --error --skipinstalled --deps TRUE \
    odbc \
    zoo \
    dygraphs \
+   shinyAce \
+   DT \
    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 RUN R CMD javareconf

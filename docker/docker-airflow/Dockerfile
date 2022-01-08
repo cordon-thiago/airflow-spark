@@ -62,7 +62,6 @@ RUN set -ex \
     && pip install -r requirements.txt \
     && pip install --use-feature=2020-resolver apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis>=2.10.5,<3' \
-    && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
@@ -125,6 +124,11 @@ ENV PATH $PATH:/usr/local/spark/bin
 COPY docker/docker-airflow/entrypoint.sh /entrypoint.sh
 COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 COPY docker/docker-airflow/config/webserver_config.py ${AIRFLOW_HOME}/airflow/webserver_config.py
+
+# python dependencies (possibility of unifying them?)
+COPY docker/docker-airflow/requirements.txt /requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install -r requirements.txt
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x entrypoint.sh
