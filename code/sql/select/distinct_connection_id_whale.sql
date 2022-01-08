@@ -1,0 +1,1 @@
+select distinct connection_id from whale_historical_ptu
