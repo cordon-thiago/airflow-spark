@@ -1,8 +1,4 @@
-#' mod_backcast UI Function
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd 
+# mod_backcast UI Function
 mod_backcast_ui <- function(id){
   ns <- NS(id)
   
@@ -21,7 +17,6 @@ mod_backcast_ui <- function(id){
         choices = choices_connection_id
       )
     ),
-    
     box(
       width = 12,
       dygraphOutput(ns('global_plot'))
@@ -29,44 +24,47 @@ mod_backcast_ui <- function(id){
     box(
       width = 12,
       title = "Trained models",
-      DTOutput(ns('tbl_models')),
-      actionButton(ns("refresh_models"), "Refresh", icon("sync")),
-      mod_new_train_ui(ns("xy"))
+      box(width = 12, 
+        DTOutput(ns('tbl_models')),
+        actionButton(ns("refresh_models"), "Refresh", icon("sync"))
+        ),
+      mod_new_train_ui(ns("train"))
     ),
     box(
       width = 12,
       title = "Backcast results",
-      DTOutput(ns('tbl_backcast'))
-    ),
-    verbatimTextOutput(ns('x4'))
+      box(width = 12,
+        DTOutput(ns('tbl_backcast')),
+        actionButton(ns("refresh_backcast"), "Refresh", icon("sync"))
+      ),
+      mod_new_backcast_ui(ns("backcast"))
+    )
   )
-  
-  
 }
 
-#'  mod_backcast Server Function
-#'
-#' @noRd 
+# mod_backcast Server Function
 mod_backcast_server <- function(id, input_list, code) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # reactive variables
+    selected_connection <- reactive(input$conn_id)
     
-    df_models_per_connection <- eventReactive(c(input$conn_id, input$refresh_models), {
+    selected_model <- reactive({
+      req(selected_connection())
+      df_models_per_connection()$id[input$tbl_models_rows_selected]
+    })
+    
+    # queried data frames for tables
+    df_models_per_connection <- eventReactive(c(selected_connection(), input$refresh_models), {
       dbFileQuery(
         conn = con,
         with_query_path("select_template/whale_models_per_connection_id.sql"),
-        params = list(connection_id = input$conn_id)
+        params = list(connection_id = selected_connection())
       )
     })
-      
-
-    selected_model <- reactive({
-      # req(input$tbl_models_rows_selected)
-      df_models_per_connection()$id[input$tbl_models_rows_selected]
-    })
-
-    df_backcast_per_model <- reactive({
+    
+    df_backcast_per_model <- eventReactive(c(selected_model(), input$refresh_backcast), {
       dbFileQuery(
         conn = con,
         with_query_path("select_template/whale_backcast_per_model.sql"),
@@ -74,13 +72,12 @@ mod_backcast_server <- function(id, input_list, code) {
       )
     })
 
-    ###
-
+    # dataframes for time series
     df_actuals <- reactive({
       dbFileQuery(
         conn = con,
         with_query_path("select_template/whale_all_consumption_per_connection.sql"),
-        params = list(connection_id = input$conn_id)
+        params = list(connection_id = selected_connection())
       )
     })
 
@@ -89,24 +86,14 @@ mod_backcast_server <- function(id, input_list, code) {
       read_csv(with_whale_backcast_path(glue("{backcast_id}.csv")))
     })
 
-    output$global_plot <- renderDygraph({
-
-      df <- df_actuals()
-      if (nrow(df_backcast() > 0)){df <- full_join(df, df_backcast(), by = "datetime")}
-
-      df_to_ts(df) %>%
-        dygraph() %>%
-        dyShading(
-          from = df_models_per_connection()$date_train_from[input$tbl_models_rows_selected],
-          to = df_models_per_connection()$date_train_until[input$tbl_models_rows_selected]
-          ) %>% 
-        dyRangeSelector()
-    })
-
-    ###
-
-
-    output$tbl_models <- render_dt_styled(df_models_per_connection)
+    # outputs
+    output$tbl_models <- render_dt_styled({
+      reactive(
+        df_models_per_connection() %>% 
+          select(-connection_id)
+      )
+      })
+    
     output$tbl_backcast  <- render_dt_styled({
       reactive(
         df_backcast_per_model() %>%
@@ -114,20 +101,36 @@ mod_backcast_server <- function(id, input_list, code) {
       )
       })
     
-    output$x4 = renderPrint({
-      cat(
-        jsonlite::toJSON(df_models_per_connection())
-      )
+    output$global_plot <- renderDygraph({
+      df <- df_actuals()
+      if (nrow(df_backcast() > 0)){df <- full_join(df, df_backcast(), by = "datetime")}
+      
+      df_to_ts(df) %>%
+        dygraph() %>%
+        dyShading(
+          from = df_models_per_connection()$date_train_from[input$tbl_models_rows_selected],
+          to = df_models_per_connection()$date_train_until[input$tbl_models_rows_selected]
+        ) %>% 
+        dyRangeSelector()
     })
     
-    mod_new_train_server("xy", react_df = df_actuals, react_conn_id = reactive(input$conn_id))
-
+    # modules
+    mod_new_train_server(
+      "train",
+      react_df = df_actuals,
+      react_conn_id = reactive(selected_connection())
+      )
+    
+    mod_new_backcast_server(
+      "backcast", 
+      react_df = df_actuals, 
+      react_model_id = reactive(selected_model())
+      )
   })
 }
 
-
 # extra modules -----------------------------------------------------------
-
+# new_train
 mod_new_train_ui <- function(id){
   ns <- NS(id)
   
@@ -141,22 +144,37 @@ mod_new_train_ui <- function(id){
       dateRangeInput(ns("date_range_trigger"), "Date range:"),
       selectInput(ns("method_trigger"), "Method/Algorithm", c("lr", "rf"))
     ),
-    actionButton(ns("trigger_dag"), label = "Send to Airflow", icon = icon("fan")),
-    verbatimTextOutput(ns('random_text'))
+    verbatimTextOutput(ns('config_text')),
+    actionButton(ns("trigger_dag"), label = "Send to Airflow", icon = icon("fan"))
   )
 }
 
-#'  mod_ingest Server Function
-#'
-#' @noRd 
 mod_new_train_server <- function(id, react_df, react_conn_id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    output$info_range <- renderUI({
+    allowed_dttm_range <- reactive({
       range <- range(react_df()$datetime)
-      tags$p("Choose between ", tags$code(range[1]), 
-             " (start timeseries) and ", tags$code(range[2]), " (end timeseries)")
+      list(
+        min = range[1],
+        max = range[2]
+      )
+    })
+    
+    observeEvent(allowed_dttm_range(), {
+      updateDateRangeInput(
+        session = session,
+        'date_range_trigger',
+        start = lubridate::as_date(allowed_dttm_range()$min),
+        end = lubridate::as_date(allowed_dttm_range()$max),
+        min = lubridate::as_date(allowed_dttm_range()$min),
+        max = lubridate::as_date(allowed_dttm_range()$max)
+      )
+    })
+    
+    output$info_range <- renderUI({
+      tags$p("Choose between ", allowed_dttm_range()$min, 
+             " (start timeseries) and ", allowed_dttm_range()$max, " (end timeseries)")
     })
     
     airflow_config <- reactive({
@@ -168,8 +186,7 @@ mod_new_train_server <- function(id, react_df, react_conn_id) {
       )
     })
     
-  
-    output$random_text = renderPrint({
+    output$config_text = renderPrint({
       cat(toJSON(airflow_config(), auto_unbox = TRUE, pretty = TRUE))
     })
     
@@ -178,11 +195,84 @@ mod_new_train_server <- function(id, react_df, react_conn_id) {
         dag_id = "train_one_model",
         params = airflow_config()
       )
-      showNotification("Job pushed to Airflow")
+      showNotification("Train job pushed to Airflow")
     })
-
   })
 }
 
+# new backcast
+mod_new_backcast_ui <- function(id){
+  ns <- NS(id)
+  
+  box(
+    width = 12,
+    title = "New backcast evaluation",
+    collapsible = TRUE,
+    collapsed = TRUE,
+    uiOutput(ns('info_range')),
+    flowLayout(
+      dateRangeInput(ns("date_range_trigger"), "Date range:")
+    ),
+    verbatimTextOutput(ns('config_text')),
+    actionButton(ns("trigger_dag"), label = "Send to Airflow", icon = icon("fan"))
+  )
+}
 
+mod_new_backcast_server <- function(id, react_df, react_model_id) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    model_properties <- reactive({
+      req(react_model_id())
+      dbFileQuery(
+        conn = con,
+        with_query_path("select_template/whale_model_properties.sql"),
+        params = list(model_id = react_model_id())
+      )
+    })
+    
+    allowed_dttm_range <- reactive({
+      list(
+        min = model_properties()$date_train_until,
+        max = max(react_df()$datetime)
+      )
+    })
+    
+    observeEvent(allowed_dttm_range(), {
+      updateDateRangeInput(
+        session = session,
+        'date_range_trigger',
+        start = lubridate::as_date(allowed_dttm_range()$min),
+        end = lubridate::as_date(allowed_dttm_range()$max),
+        min = lubridate::as_date(allowed_dttm_range()$min),
+        max = lubridate::as_date(allowed_dttm_range()$max)
+      )
+    })
+    
+    output$info_range <- renderUI({
+      tags$p("Choose between ", tags$code(allowed_dttm_range()$min), 
+             " (end training model) and ", tags$code(allowed_dttm_range()$max), " (end timeseries)")
+    })
+    
+    airflow_config <- reactive({
+      list(
+        model_id = react_model_id(),
+        date_from = input$date_range_trigger[1],
+        date_until = input$date_range_trigger[2]
+      )
+    })
+
+    output$config_text = renderPrint({
+      cat(toJSON(airflow_config(), auto_unbox = TRUE, pretty = TRUE))
+    })
+    
+    observeEvent(input$trigger_dag, {
+      trigger_dag(
+        dag_id = "backcast_one_model",
+        params = airflow_config()
+      )
+      showNotification("Backcast job pushed to Airflow")
+    })
+  })
+}
 

@@ -1,0 +1,85 @@
+---
+title: "explore_airlflow_api"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(httr)
+library(jsonlite)
+library(uuid)
+```
+
+```{r}
+res <- GET("http://airflow-webserver:8282/api/v1/dags/create_timescale_tables/dagRuns")
+content(res)
+```
+
+Trigger the training of a model
+```{r}
+
+
+####
+
+trigger_dag(
+  dag_id = "train_one_model",
+  params = list(
+    connection_id = "871685900000000158MV",
+    date_from = "2019-02-22", 
+    date_until = "2019-11-11",
+    method = "lr"
+  )
+)
+
+trigger_dag(
+  dag_id = "backcast_one_model",
+  params = list(
+    model_id = "b6d34328-f846-46c0-b51f-e133acd63538",
+    date_from = "2019-11-12", 
+    date_until = "2021-06-01"
+  )
+)
+```
+
+```{r}
+ json_array <- list(
+      post =  list(a = 1, b = 2, c = list(d=3, e=4))
+    )
+
+r <- POST("http://httpbin.org/post", body = params, encode="json")
+
+content(r)
+
+
+r <- POST("http://airflow-webserver:8282/api/v1/dags/create_timescale_tables/dagRuns", body = list(dag_run_id=py$id), encode = "json")
+rawToChar(content(r))
+```
+
+
+```{python}
+import requests
+import uuid
+
+url = 'https://www.w3schools.com/python/demopage.php'
+myobj = {'somekey': 'somevalue'}
+
+x = requests.post(url, data = myobj)
+
+print(x.text)
+```
+
+```{python}
+
+id = str(uuid.uuid4())
+
+res = requests.post(
+  url = 'http://airflow-webserver:8282/api/v1/dags/create_timescale_tables/dagRuns',
+  json = {"conf":{"foo": "baar"}, "dag_run_id": id},
+  headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+)
+res.text
+# successful train
+# {"connection_id": "871685900000000158MV", "date_from": "2019-02-22", "date_until": "2019-11-11", "method":"lr"}
+```
+
