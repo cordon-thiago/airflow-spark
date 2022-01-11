@@ -34,18 +34,6 @@ def parse_p4(file):
     return df
   
   
-# for file in files_to_upload:
-#     postgres_insert_df(
-#         conn = conn,
-#         df = parse_p4(file),
-#         table = "bird_historical_meter_raw"
-#         )
-#     print(f"uploaded{file}")
-# 
-# 
-
-
-  
 
 ######
 

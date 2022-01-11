@@ -3,6 +3,7 @@ import sys
 sys.path.append("/usr/local/modules")
 from database_interaction import postgres_insert_df
 
+import logging
 import pandas as pd
 import numpy as np
 

@@ -21,14 +21,6 @@ dbFileQuery <- function(conn,
     )
   }
   
-  print(glue_data_sql(
-    .x = params,
-    paste(readLines(file), collapse = '\n'),
-    .open = "{{",
-    .close = "}}",
-    .con = conn
-  ))
-  
   stopifnot(is.list(params))
   dbGetQuery(
     conn,

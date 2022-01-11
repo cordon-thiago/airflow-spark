@@ -3,6 +3,7 @@ import sys
 sys.path.append("/usr/local/modules")
 from database_interaction import postgres_insert_df
 
+import logging
 import pandas as pd
 import numpy as np
 from workalendar.europe import Netherlands
@@ -36,7 +37,7 @@ def generate():
 
 def push(conn, df):
     postgres_insert_df(conn=conn, df=df, table="datetime_amsterdam_properties")
-    print("dataframe pushed to datetime_amsterdam_properties")
+    logging.info("dataframe pushed to datetime_amsterdam_properties")
     return True
 
 def _sin_encode(x, max):

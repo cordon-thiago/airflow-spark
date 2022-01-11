@@ -3,6 +3,7 @@ import sys
 sys.path.append("/usr/local/modules")
 from database_interaction import postgres_insert_df
 
+import logging
 import pandas as pd
 
 def parse(file):
@@ -26,5 +27,5 @@ def parse(file):
 
 def push(conn, df):
     postgres_insert_df(conn=conn, df=df, table="bird_historical_meter_raw")
-    print("dataframe pushed to bird_historical_meter_raw")
+    logging.info("dataframe pushed to bird_historical_meter_raw")
     return True

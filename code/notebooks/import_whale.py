@@ -3,6 +3,7 @@ import zipfile
 import os
 import shutil
 
+import logging
 import pandas as pd
 import numpy as np
 import psycopg2
@@ -24,11 +25,11 @@ def postgres_insert_df(conn, df, table):
         extras.execute_values(cursor, query, tuples)
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print("Error: %s" % error)
+        logging.error("Error: %s" % error)
         conn.rollback()
         cursor.close()
         return 1
-    print("execute_values() done")
+    logging.info("execute_values() done")
     cursor.close()
 
 ###

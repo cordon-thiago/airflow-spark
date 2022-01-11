@@ -4,6 +4,7 @@ sys.path.append("/usr/local/modules")
 from database_interaction import postgres_insert_df
 
 import pandas as pd
+import logging
 
 def parse(file):
     df = pd.read_csv(
@@ -30,7 +31,7 @@ def parse(file):
 
 def push(conn, df):
     postgres_insert_df(conn=conn, df=df, table="knmi_weather_hour")
-    print("dataframe pushed to knmi_weather_hour")
+    logging.info("dataframe pushed to knmi_weather_hour")
     return True
 
 def _search_string_by_line(file_name, string_to_search):
