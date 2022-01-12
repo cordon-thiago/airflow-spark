@@ -44,6 +44,6 @@ RUN install2.r --error --skipinstalled --deps TRUE \
 RUN R CMD javareconf
 
 # python dependencies (possibility of unifying them?)
-COPY docker/docker-rstudio/requirements.txt /requirements.txt
+COPY docker/python_requirements.txt /requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install -r requirements.txt
