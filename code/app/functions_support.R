@@ -45,6 +45,13 @@ df_to_ts <- function(df){
 }
 
 
+# formatting --------------------------------------------------------------
+
+date_to_iso8601 <- function(date){
+  format_ISO8601(as_datetime(date, tz = "UTC"), usetz = TRUE)
+}
+
+
 # UI ----------------------------------------------------------------------
 
 render_dt_styled <- function(react_df){
@@ -69,7 +76,21 @@ render_dt_styled <- function(react_df){
 
 trigger_dag <- function(dag_id, params=list(), dag_run_id = UUIDgenerate()){
   url <- glue("http://airflow-webserver:8282/api/v1/dags/{dag_id}/dagRuns")
-  POST(url, body = list(conf = params, dag_run_id = dag_run_id), encode = "json")
+  res <- POST(url, body = list(conf = params, dag_run_id = dag_run_id), encode = "json")
+  
+  if (status_code(res) >= 400){
+    showNotification(
+      ui = fromJSON(rawToChar(content(res)))$detail, 
+      type = "error"
+    )
+  }
+  
+  if (status_code(res) == 200){
+    showNotification(
+      ui = glue::glue("DAG `{dag_id}` successfully triggered"), 
+      type = "message"
+    )
+  }
 }
 
 trigger_train_model <- function(connection_id, date_from, date_until, method = "lr"){
@@ -95,5 +116,5 @@ trigger_backcast_model <- function(model_id, date_from, date_until){
     )
   )
 }
-# trigger_train_model(connection_id = "871685900000000158MV", date_from = "2019-02-22", date_until = "2019-11-11")
+#trigger_train_model(connection_id = "871685900000000158MV", date_from = "2019-02-22", date_until = "2019-11-11")
 # trigger_backcast_model(model_id = "b6d34328-f846-46c0-b51f-e133acd63538", date_from = "2019-11-12", date_until = "2021-06-01")

@@ -96,8 +96,8 @@ mod_backcast_server <- function(id, input_list, code) {
     
     output$tbl_backcast  <- render_dt_styled({
       reactive(
-        df_backcast_per_model() %>%
-          select(- model_id)
+        df_backcast_per_model() %>% 
+          select(-model_id)
       )
       })
     
@@ -165,23 +165,23 @@ mod_new_train_server <- function(id, react_df, react_conn_id) {
       updateDateRangeInput(
         session = session,
         'date_range_trigger',
-        start = lubridate::as_date(allowed_dttm_range()$min),
-        end = lubridate::as_date(allowed_dttm_range()$max),
-        min = lubridate::as_date(allowed_dttm_range()$min),
-        max = lubridate::as_date(allowed_dttm_range()$max)
+        start = as_date(allowed_dttm_range()$min),
+        end = as_date(allowed_dttm_range()$max),
+        min = as_date(allowed_dttm_range()$min),
+        max = as_date(allowed_dttm_range()$max)
       )
     })
     
     output$info_range <- renderUI({
-      tags$p("Choose between ", allowed_dttm_range()$min, 
-             " (start timeseries) and ", allowed_dttm_range()$max, " (end timeseries)")
+      tags$p("Choose between ", tags$code(allowed_dttm_range()$min), 
+             " (start timeseries) and ", tags$code(allowed_dttm_range()$max), " (end timeseries)")
     })
     
     airflow_config <- reactive({
       list(
         connection_id = react_conn_id(),
-        date_from = input$date_range_trigger[1],
-        date_until = input$date_range_trigger[2],
+        date_from = date_to_iso8601(input$date_range_trigger[1]),
+        date_until = date_to_iso8601(input$date_range_trigger[2]),
         method = input$method_trigger
       )
     })
@@ -192,10 +192,9 @@ mod_new_train_server <- function(id, react_df, react_conn_id) {
     
     observeEvent(input$trigger_dag, {
       trigger_dag(
-        dag_id = "train_one_model",
+        dag_id = "run_train_one_model",
         params = airflow_config()
       )
-      showNotification("Train job pushed to Airflow")
     })
   })
 }
@@ -242,10 +241,10 @@ mod_new_backcast_server <- function(id, react_df, react_model_id) {
       updateDateRangeInput(
         session = session,
         'date_range_trigger',
-        start = lubridate::as_date(allowed_dttm_range()$min),
-        end = lubridate::as_date(allowed_dttm_range()$max),
-        min = lubridate::as_date(allowed_dttm_range()$min),
-        max = lubridate::as_date(allowed_dttm_range()$max)
+        start = as_date(allowed_dttm_range()$min),
+        end = as_date(allowed_dttm_range()$max),
+        min = as_date(allowed_dttm_range()$min),
+        max = as_date(allowed_dttm_range()$max)
       )
     })
     
@@ -257,8 +256,8 @@ mod_new_backcast_server <- function(id, react_df, react_model_id) {
     airflow_config <- reactive({
       list(
         model_id = react_model_id(),
-        date_from = input$date_range_trigger[1],
-        date_until = input$date_range_trigger[2]
+        date_from = date_to_iso8601(input$date_range_trigger[1]),
+        date_until = date_to_iso8601(input$date_range_trigger[2])
       )
     })
 
@@ -268,10 +267,9 @@ mod_new_backcast_server <- function(id, react_df, react_model_id) {
     
     observeEvent(input$trigger_dag, {
       trigger_dag(
-        dag_id = "backcast_one_model",
+        dag_id = "run_backcast_one_model",
         params = airflow_config()
       )
-      showNotification("Backcast job pushed to Airflow")
     })
   })
 }

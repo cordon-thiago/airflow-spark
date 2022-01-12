@@ -12,6 +12,7 @@ library(dplyr)
 library(httr)
 library(uuid)
 library(jsonlite)
+library(lubridate)
 
 # Connect to "jdbc:postgresql://postgres:5432/test"
 con <- DBI::dbConnect(
