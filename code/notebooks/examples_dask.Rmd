@@ -1,0 +1,101 @@
+---
+title: "examples_dask"
+output: html_document
+---
+
+Hard to demonstrate with few data in local
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{python}
+import pandas as pd
+import dask.dataframe as dd
+
+from dask.distributed import Client
+client = Client('tcp://dask-scheduler:8786')
+client.ncores()
+```
+
+Distributed Linear Regression
+```{python}
+from sklearn.linear_model import LinearRegression
+
+uri = 'postgresql://test:postgres@postgres:5432/test'
+ddf_whale = dd.read_sql_table('whale_historical_ptu', uri, index_col='datetime', npartitions=10)
+ddf_knmi = dd.read_sql_table('knmi_weather_hour', uri, index_col='datetime', npartitions=10)  
+ddf_time = dd.read_sql_table('datetime_amsterdam_properties', uri, index_col='datetime', npartitions=10)  
+
+ddf_joined = ddf_whale.dropna().join(ddf_knmi, how='left').join(ddf_time, how='left')
+
+def train(partition):
+  partition = partition.fillna(method = 'ffill').dropna()
+  factors = ['temperature', 'solar_radiation', 'sfm_sin', 'sfm_cos', 'doy_sin', 'doy_cos']
+  est = LinearRegression()
+  est.fit(partition[factors].values, partition['consumption'].values)
+  return est
+
+
+ddf_trained = ddf_joined.groupby('connection_id').apply(train, meta=object).compute().sort_index()
+
+ddf_trained
+```
+
+Reading csvs
+```{python}
+import os
+from dask import delayed
+import numpy as np
+import time
+
+def parse_raw(file):
+    df = pd.read_csv(
+        file,
+        sep='\t',
+        index_col=False,
+        names=['date', 'time', 'consumption'],
+        skiprows=1,
+        dtype={'date': 'str', 'time': 'str', 'consumption': 'float'},
+    )
+
+    ean_id = pd.read_csv(file, index_col=False, sep='\t', nrows=0).columns.tolist()[2]
+
+    df['datetime'] = pd.to_datetime(
+        df['date'] + " " + df['time'],
+        format='%Y.%m.%d %H:%M'
+    )
+    # `infer` is absolutely fundamental, because the data messes with DST
+    df['datetime'] = df['datetime'].dt.tz_localize('Europe/Amsterdam', ambiguous='infer').dt.tz_convert('UTC')
+
+    df['connection_id'] = ean_id
+
+    df = df[['connection_id', 'datetime', 'consumption']]
+
+    # missing consumption figures are parsed as NaN, when should be None
+    df = df.replace({np.nan: None})
+
+    return df
+  
+origin_folder = "/usr/local/remote_data/whale"
+files_to_upload = [f"{origin_folder}/{x}" for x in os.listdir(origin_folder) if x.endswith(".csv")]
+```
+
+```{python}
+# Dask
+start_time = time.time()
+dfs = [delayed(parse_raw)(file) for file in files_to_upload]
+# using delayed, assemble the pandas.DataFrames into a dask.DataFrame
+ddf = dd.from_delayed(dfs, meta = {'connection_id': 'str', 'datetime': 'datetime64[ns, UTC]', 'consumption': 'float64'}, verify_meta=False)
+# and from there to pandas 
+ddp = ddf.compute()
+print("--- %s seconds ---" % (time.time() - start_time))
+```
+
+```{python}
+# Pure pandas
+start_time = time.time()
+df = pd.concat([parse_raw(file) for file in files_to_upload])
+print("--- %s seconds ---" % (time.time() - start_time))
+```
+
