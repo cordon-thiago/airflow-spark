@@ -26,6 +26,8 @@ In one command, `docker compose up` will build and start all the containers defi
 
 Downloading images and building from Dockerfiles will take a while (perhaps 20 minutes)
 
+Some Airflow DAGs expect the folder `./local_data` to be present, so you will have to create it in your local. Of course, in a production environment, remote storage like a S3 bucket would be used instead.
+
 ## Passwords
 
 Right now the setup is grossly unsafe; this is just for testing purposes
