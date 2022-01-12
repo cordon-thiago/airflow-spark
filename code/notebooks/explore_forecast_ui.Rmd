@@ -1,0 +1,106 @@
+---
+title: "explore_forecast_ui"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+library(dplyr)
+library(ggplot2)
+library(DBI)
+library(zoo)
+library(dygraphs)
+library(xts)
+
+df_to_ts <- function(df){
+  xts(
+    x = df[,2:ncol(df)],
+    order.by = df[,1]
+    )
+}
+```
+
+```{r}
+# Connect to "jdbc:postgresql://postgres:5432/test"
+con <- DBI::dbConnect(
+  drv = RPostgres::Postgres(),
+  host = "postgres",
+  port=5432,
+  dbname = "test",
+  user = "test",
+  password = "postgres"
+  )
+```
+
+Check unique `connection_id`
+```{sql connection=con, output.var='unique_connection_id'}
+select distinct connection_id from whale_historical_ptu
+```
+
+Pick the first one for the experiment
+```{r}
+picked_connection_id <- unique_connection_id$connection_id[1]
+picked_connection_id
+```
+
+Use such connection to see models associated
+```{sql connection=con, output.var='model_df'}
+select *
+from whale_models
+where connection_id = ?picked_connection_id
+```
+
+```{r}
+head(model_df)
+```
+From these, pick the first model
+```{r}
+picked_model_id <- model_df$id[1]
+picked_model_id
+```
+
+And use this model to get the list of available backcast
+```{sql connection=con, output.var='backcast_df'}
+select *
+from whale_backcast wb
+where model_id = ?picked_model_id
+```
+
+```{r}
+head(backcast_df)
+```
+Of which we take the first one
+
+```{r}
+picked_backcast_id <- backcast_df$id[1]
+```
+
+----
+
+We proceed to fetch the actuals using `picked_connection_id`
+```{sql connection=con, output.var='actuals_fetched'}
+select datetime, consumption
+from whale_historical_ptu whp 
+where connection_id = ?picked_connection_id
+and consumption is not null
+```
+
+```{r}
+head(actuals_fetched)
+```
+
+The backcast is stored in a csv; we fetch it and read it
+```{r}
+backcast_fetched <- readr::read_csv(glue::glue("/usr/local/remote_data/whale_backcast/{picked_backcast_id}.csv"))
+```
+Last, we visualize both together
+```{r}
+full_join(actuals_fetched, backcast_fetched, by = "datetime") %>% 
+  df_to_ts() %>% 
+  dygraph() %>% 
+  dyRangeSelector()
+```
+
+
+
