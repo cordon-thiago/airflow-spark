@@ -29,6 +29,7 @@ services:
     postgres:
         build:
             dockerfile: docker/docker-postgres-timescale/Dockerfile
+        restart: on-failure
         networks:
             - default_net
         environment:
@@ -47,7 +48,7 @@ services:
         build:
             dockerfile: docker/docker-airflow/Dockerfile
             args: *spark_hadoop_version
-        restart: always
+        restart: on-failure
         networks:
             - default_net
         depends_on:
@@ -77,10 +78,10 @@ services:
             retries: 3
 
     rstudio:
-        deploy:
-            resources:
-                reservations:
-                    memory: 800MB
+        #deploy:
+        #    resources:
+        #        reservations:
+        #            memory: 800MB
         networks:
             - default_net
         build:
@@ -99,58 +100,90 @@ services:
             - "8888:8787"
             - "3737:3737"
 
-    # Spark with 3 workers
-    spark:
-        image: *spark_image
-        user: root # Run container as root container: https://docs.bitnami.com/tutorials/work-with-non-root-containers/
-        hostname: spark
+    dask-scheduler:
+        image: daskdev/dask:2021.9.1-py3.8
+        #hostname: scheduler
         networks:
             - default_net
-        environment:
-            - SPARK_MODE=master
-            - SPARK_RPC_AUTHENTICATION_ENABLED=no
-            - SPARK_RPC_ENCRYPTION_ENABLED=no
-            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-            - SPARK_SSL_ENABLED=no
         volumes:
             - *spark_path
             - *resources_path
             - *data_storage_path
+            - *modules_path
         ports:
-            - "8181:8080"
-            - "7077:7077"
+            - "8786:8786"
+            - "8787:8787"
+        environment:
+            - EXTRA_PIP_PACKAGES=psycopg2-binary==2.9.3 SQLAlchemy==1.3.24 scikit-learn==1.0.2
+        command: [ "dask-scheduler" ]
 
-    spark-worker-1:
-        image: *spark_image
-        user: root
-        networks:
-            - default_net
-        environment: *spark-worker-env
+    dask-worker:
+        image: daskdev/dask:2021.9.1-py3.8
+        command: [ "dask-worker", "tcp://dask-scheduler:8786" ]
         volumes:
             - *spark_path
             - *resources_path
             - *data_storage_path
-
-    spark-worker-2:
-        image: *spark_image
-        user: root
+            - *modules_path
+        environment:
+            - EXTRA_PIP_PACKAGES=psycopg2-binary==2.9.3 SQLAlchemy==1.3.24 scikit-learn==1.0.2
         networks:
             - default_net
-        environment: *spark-worker-env
-        volumes:
-            - *spark_path
-            - *resources_path
-            - *data_storage_path
+        deploy:
+            replicas: 2
 
-    spark-worker-3:
-        image: *spark_image
-        user: root
-        networks:
-            - default_net
-        environment: *spark-worker-env
-        volumes:
-            - *spark_path
-            - *resources_path
-            - *data_storage_path
+    # Spark with 3 workers
+    #spark:
+    #    image: *spark_image
+    #    user: root # Run container as root container: https://docs.bitnami.com/tutorials/work-with-non-root-containers/
+    #    hostname: spark
+    #    networks:
+    #        - default_net
+    #    environment:
+    #        - SPARK_MODE=master
+    #        - SPARK_RPC_AUTHENTICATION_ENABLED=no
+    #        - SPARK_RPC_ENCRYPTION_ENABLED=no
+    #        - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+    #        - SPARK_SSL_ENABLED=no
+    #    volumes:
+    #        - *spark_path
+    #        - *resources_path
+    #        - *data_storage_path
+    #    ports:
+    #        - "8181:8080"
+    #        - "7077:7077"
+
+    #spark-worker-1:
+    #    image: *spark_image
+    #    user: root
+    #    networks:
+    #        - default_net
+    #    environment: *spark-worker-env
+    #    volumes:
+    #        - *spark_path
+    #        - *resources_path
+    #        - *data_storage_path
+
+    #spark-worker-2:
+    #    image: *spark_image
+    #    user: root
+    #    networks:
+    #        - default_net
+    #    environment: *spark-worker-env
+    #    volumes:
+    #        - *spark_path
+    #        - *resources_path
+    #        - *data_storage_path
+
+    #spark-worker-3:
+    #    image: *spark_image
+    #    user: root
+    #    networks:
+    #        - default_net
+    #    environment: *spark-worker-env
+    #    volumes:
+    #        - *spark_path
+    #        - *resources_path
+    #        - *data_storage_path
 networks:
     default_net:
