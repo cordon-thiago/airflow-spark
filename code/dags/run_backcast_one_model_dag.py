@@ -31,7 +31,7 @@ def do_backcast_one_model(**context):
 
 # DAG
 dag = DAG(
-    dag_id="backcast_one_model",
+    dag_id="run_backcast_one_model",
     start_date=datetime.datetime(2020, 2, 2),
     schedule_interval="@once",
     catchup=False,
