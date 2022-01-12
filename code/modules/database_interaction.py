@@ -2,6 +2,7 @@ import psycopg2
 import psycopg2.extras as extras
 from jinjasql import JinjaSql
 import pandas.io.sql as sqlio
+import logging
 
 def postgres_connect():
     # so it is possible to work with UUID types
@@ -34,7 +35,7 @@ def postgres_insert_df(conn, df, table):
         conn.rollback()
         cursor.close()
         return 1
-    print("execute_values() done")
+    logging.info("execute_values() done")
     cursor.close()
     
 def sql_file_to_df(conn, file, params=None):

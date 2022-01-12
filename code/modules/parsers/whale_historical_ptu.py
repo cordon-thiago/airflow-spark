@@ -38,5 +38,5 @@ def parse(file):
 
 def push(conn, df):
     postgres_insert_df(conn=conn, df=df, table="whale_historical_ptu")
-    print("dataframe pushed to whale_historical_ptu")
+    logging.info("dataframe pushed to whale_historical_ptu")
     return True
