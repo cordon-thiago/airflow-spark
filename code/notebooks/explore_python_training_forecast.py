@@ -41,7 +41,7 @@ for i in range(0,len(df_ranges)):
         connection_id = ind_row.connection_id,
         date_from = ind_row.dttm_from,
         date_until = ind_row.dttm_08,
-        method = "rf"
+        method = "lm"
     )
     
     print(info_model)

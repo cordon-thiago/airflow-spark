@@ -99,7 +99,7 @@ def backcast_model(
     fetched_connection_id = model_properties["connection_id"][0]
     fetched_date_train_until = model_properties["date_train_until"][0]
 
-    if pd.Timestamp(date_from, tz='UTC') < fetched_date_train_until:
+    if pd.Timestamp(date_from) < fetched_date_train_until:
         raise AssertionError(
             f"model training latest date {fetched_date_train_until} cannot be later than model backcasting earliest {date_from}")
 
