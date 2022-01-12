@@ -1,5 +1,5 @@
 ---
-title: "explore_import_whalw"
+title: "explore_import_whale"
 output: html_document
 ---
 
@@ -72,15 +72,5 @@ df3 = df2 \
   )
 )
   
-```
-
-
-
-```{python}
-iris_tbl = spark.createDataFrame(r.iris)
-```
-
-```{python}
-iris_tbl.show(4)
 ```
 
