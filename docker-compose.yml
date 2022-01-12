@@ -90,11 +90,12 @@ services:
             - *data_storage_path
             - *modules_path
             - *sql_path
+            - ./code/app:/srv/shiny-server/app
         environment:
             - PASSWORD=airflow
         ports:
             - "8888:8787"
-            - "3737:3737"
+            - "3838:3838"
 
     dask-scheduler:
         image: daskdev/dask:2021.9.1-py3.8

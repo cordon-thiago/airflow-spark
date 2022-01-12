@@ -31,9 +31,8 @@ ui <- function(request) {
   
   sidebar <- dashboardSidebar(
     sidebarMenu(
-      menuItem("Ingest", tabName = "ingest"),
-      menuItem("Backcast", tabName = "backcast")
-      
+      menuItem("Backcast", tabName = "backcast"),
+      menuItem("Ingest", tabName = "ingest")
     )
   )
   

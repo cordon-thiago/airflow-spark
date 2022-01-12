@@ -8,8 +8,7 @@ This project deploys:
 
 - Dask cluster, consisting on an scheduler plus a variable number of workers. The scheduler is available at [http://localhost:8787/status](http://localhost:8787/status)
 
-- Rstudio instance (with Shiny Server and Python + Reticulate). This serves both as workbench for development(Rstudio, available at [http://localhost:8787](http://localhost:8787/)) and a way to host Shiny apps.
-
+- Rstudio instance (with Shiny Server and Python + Reticulate). This serves both as workbench for development(Rstudio, available at [http://localhost:8787](http://localhost:8787/)) and a way to host Shiny apps (app available at [http://localhost:3838/app/](http://localhost:3838/app/).
 
 ## On some decisions (why is not Spark here?)
 
@@ -24,6 +23,8 @@ Spark proves to be particularly slow in this setup. Currently I am experimenting
 You will need docker engine in your local.
 
 In one command, `docker compose up` will build and start all the containers defined in `docker-compose.yml` (run the command from the root of the project).
+
+Downloading images and building from Dockerfiles will take a while (perhaps 20 minutes)
 
 ## Passwords
 
