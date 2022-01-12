@@ -254,6 +254,7 @@ mod_new_backcast_server <- function(id, react_df, react_model_id) {
     })
     
     airflow_config <- reactive({
+      req(react_model_id())
       list(
         model_id = react_model_id(),
         date_from = date_to_iso8601(input$date_range_trigger[1]),
@@ -266,6 +267,7 @@ mod_new_backcast_server <- function(id, react_df, react_model_id) {
     })
     
     observeEvent(input$trigger_dag, {
+      req(react_model_id())
       trigger_dag(
         dag_id = "run_backcast_one_model",
         params = airflow_config()
