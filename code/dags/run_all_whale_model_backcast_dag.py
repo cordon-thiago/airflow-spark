@@ -59,9 +59,9 @@ def do_all_whale_model_backcast():
 dag = DAG(
     dag_id="run_all_whale_model_backcast",
     start_date=datetime.datetime(2020, 2, 2),
-    schedule_interval="@once",
+    schedule_interval=None,
     catchup=False,
-    tags=['run']
+    tags=['setup', 'run']
 )
 
 start_process = DummyOperator(

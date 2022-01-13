@@ -36,7 +36,7 @@ def parse_and_upload():
 dag = DAG(
     dag_id="populate_whale_historical_ptu",
     start_date=datetime.datetime(2020, 2, 2),
-    schedule_interval="@once",
+    schedule_interval=None,
     catchup=False,
     tags=['setup']
 )

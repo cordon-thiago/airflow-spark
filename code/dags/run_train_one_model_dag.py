@@ -37,7 +37,7 @@ def do_train_one_model(**context):
 dag = DAG(
     dag_id="run_train_one_model",
     start_date=datetime.datetime(2020, 2, 2),
-    schedule_interval="@once",
+    schedule_interval=None,
     catchup=False,
     tags=['run']
 )
