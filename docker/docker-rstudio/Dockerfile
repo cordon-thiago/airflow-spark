@@ -28,20 +28,16 @@ RUN apt-get -y update && apt-get install -y \
    && rm -rf /var/lib/apt/lists/
 
 # Install further R packages
-RUN install2.r --error --skipinstalled --deps TRUE \
-   shinydashboard \
-   here \
-   sparklyr \
-   rJava \
-   RJDBC \
-   odbc \
-   zoo \
-   dygraphs \
-   shinyAce \
-   DT \
+RUN install2.r --repo https://mran.microsoft.com/snapshot/2021-08-09  \
+    shiny  \
+    shinydashboard \
+    here \
+    zoo \
+    dygraphs \
+    shinyAce \
+    DT \
+    uuid \
    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
-
-RUN R CMD javareconf
 
 # python dependencies (possibility of unifying them?)
 COPY docker/python_requirements.txt /requirements.txt
