@@ -1,6 +1,6 @@
 version: "3.7"
 
-x-dag-path: &dag_path ./code/dags:/usr/local/airflow/dags #DAG folder
+x-dag-path: &dag_path ./code/dags:/usr/local/airflow/airflow/dags #DAG folder
 x-spark_path: &spark_path ./code/spark:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
 x-resources_path: &resources_path ./resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
 x-data_storage_path: &data_storage_path ./local_data:/usr/local/remote_data
@@ -55,8 +55,15 @@ services:
             - postgres
         environment:
             - LOAD_EX=n
-            - EXECUTOR=Local
+            # SequentialExecutor or DaskExecutor
+            - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=tcp://dask-scheduler:8786
+            - AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8282
+            - AIRFLOW__WEBSERVER__WEB_SERVER_PORT=8282
+            - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
             - AIRFLOW__CORE__LOAD_EXAMPLES=False
+            - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
             - FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
             - AIRFLOW__CORE__FERNET_KEY=pe1SS1cu1l1sMVlz-uT3Bg5v3z1rQJp0RrJW6XLO0XM=
             - AIRFLOW_CONN_POSTGRES_TEST=postgres://test:postgres@postgres:5432/test
@@ -98,15 +105,16 @@ services:
             - "3838:3838"
 
     dask-scheduler:
-        image: daskdev/dask:2021.9.1-py3.8
-        #hostname: scheduler
+        build:
+            dockerfile: docker/docker-dask/Dockerfile
+        #image: daskdev/dask:2021.9.1-py3.8
         networks:
             - default_net
         volumes:
-            - *spark_path
             - *resources_path
             - *data_storage_path
             - *modules_path
+            - *sql_path
         ports:
             - "8786:8786"
             - "8787:8787"
@@ -115,13 +123,15 @@ services:
         command: [ "dask-scheduler" ]
 
     dask-worker:
-        image: daskdev/dask:2021.9.1-py3.8
+        build:
+            dockerfile: docker/docker-dask/Dockerfile
+        #image: daskdev/dask:2021.9.1-py3.8
         command: [ "dask-worker", "tcp://dask-scheduler:8786" ]
         volumes:
-            - *spark_path
             - *resources_path
             - *data_storage_path
             - *modules_path
+            - *sql_path
         environment:
             - EXTRA_PIP_PACKAGES=psycopg2-binary==2.9.3 SQLAlchemy==1.3.24 scikit-learn==1.0.2
         networks:
