@@ -83,7 +83,10 @@ mod_backcast_server <- function(id, input_list, code) {
 
     df_backcast <- reactive({
       backcast_id <- df_backcast_per_model()$id[input$tbl_backcast_rows_selected]
-      read_csv(with_whale_backcast_path(glue("{backcast_id}.csv")))
+      csv_path <- with_whale_backcast_path(glue("{backcast_id}.csv"))
+      # propagate downstream failure to read the file by returning empty df
+      if (!isTRUE(file.exists(csv_path))) {return(data.frame())}
+      read_csv(csv_path)
     })
 
     # outputs
