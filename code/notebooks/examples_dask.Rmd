@@ -99,3 +99,41 @@ df = pd.concat([parse_raw(file) for file in files_to_upload])
 print("--- %s seconds ---" % (time.time() - start_time))
 ```
 
+Reading csvs - ALT
+```{python}
+import os
+from dask import delayed
+import numpy as np
+import time
+
+def parse_raw(file):
+    df = pd.read_csv(
+        file,
+        index_col=False,
+        parse_dates = ['datetime'],
+    )
+    # long computation or io bottleneck
+    time.sleep(0.5)
+    return df
+  
+origin_folder = "/usr/local/remote_data/whale_alt"
+files_to_upload = [f"{origin_folder}/{x}" for x in os.listdir(origin_folder) if x.endswith(".csv")]
+```
+
+```{python}
+# Dask
+start_time = time.time()
+dfs = [delayed(parse_raw)(file) for file in files_to_upload]
+# using delayed, assemble the pandas.DataFrames into a dask.DataFrame
+ddf = dd.from_delayed(dfs, meta = {'connection_id': 'str', 'datetime': 'datetime64[ns, UTC]', 'consumption': 'float64'}, verify_meta=False)
+# and from there to pandas 
+ddp = ddf.compute()
+print("--- %s seconds ---" % (time.time() - start_time))
+```
+
+```{python}
+# Pure pandas
+start_time = time.time()
+df = pd.concat([parse_raw(file) for file in files_to_upload])
+print("--- %s seconds ---" % (time.time() - start_time))
+```
