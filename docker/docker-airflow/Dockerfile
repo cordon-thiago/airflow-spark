@@ -13,8 +13,8 @@ ARG HADOOP_VERSION
 # Airflow
 ARG AIRFLOW_VERSION=2.2.2
 ARG AIRFLOW_HOME=/usr/local/airflow
-#ARG AIRFLOW_DEPS=""
-#ARG PYTHON_DEPS=""
+ARG AIRFLOW_DEPS=""
+ARG PYTHON_DEPS=""
 ENV AIRFLOW_GPL_UNIDECODE yes
 
 # Define en_US.
@@ -122,13 +122,9 @@ ENV PATH $PATH:/usr/local/spark/bin
 ###############################
 
 COPY docker/docker-airflow/entrypoint.sh /entrypoint.sh
-COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
+#COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 COPY docker/docker-airflow/config/webserver_config.py ${AIRFLOW_HOME}/airflow/webserver_config.py
 
-# python dependencies (possibility of unifying them?)
-#COPY docker/python_requirements.txt /requirements.txt
-#RUN pip install --no-cache-dir --upgrade pip && \
-#    pip install -r requirements.txt
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 RUN chmod +x entrypoint.sh
