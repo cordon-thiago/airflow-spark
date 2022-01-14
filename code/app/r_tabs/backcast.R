@@ -145,7 +145,11 @@ mod_new_train_ui <- function(id){
     uiOutput(ns('info_range')),
     flowLayout(
       dateRangeInput(ns("date_range_trigger"), "Date range:"),
-      selectInput(ns("method_trigger"), "Method/Algorithm", c("lr", "rf"))
+      selectInput(
+        ns("method_trigger"), 
+        "Method/Algorithm", 
+        list(LinearRegression = "lr", RandomForestRegressor = "rf")
+        )
     ),
     verbatimTextOutput(ns('config_text')),
     actionButton(ns("trigger_dag"), label = "Send to Airflow", icon = icon("fan"))
