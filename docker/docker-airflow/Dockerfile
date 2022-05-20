@@ -99,28 +99,6 @@ RUN export JAVA_HOME
 ## Finish JAVA installation
 ###############################
 
-###############################
-## SPARK files and variables
-###############################
-ENV SPARK_HOME /usr/local/spark
-
-# Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
-RUN cd "/tmp" && \
-        wget -q --no-verbose "https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
-        tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
-        mkdir -p "${SPARK_HOME}/bin" && \
-        mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
-        cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/bin/." "${SPARK_HOME}/bin/" && \
-        cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
-        rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
-
-# Create SPARK_HOME env var
-RUN export SPARK_HOME
-ENV PATH $PATH:/usr/local/spark/bin
-###############################
-## Finish SPARK files and variables
-###############################
-
 COPY docker/docker-airflow/entrypoint.sh /entrypoint.sh
 #COPY docker/docker-airflow/config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 COPY docker/docker-airflow/config/webserver_config.py ${AIRFLOW_HOME}/airflow/webserver_config.py
