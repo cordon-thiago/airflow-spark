@@ -96,7 +96,7 @@ Postgres - Database airflow:
 Jupyter Notebook: http://127.0.0.1:8888
   * For Jupyter notebook, you must copy the URL with the token generated when the container is started and paste in your browser. The URL with the token can be taken from container logs using:
   
-        $ docker logs -f docker_jupyter-spark_1
+        $ docker logs -f docker-jupyter-spark-1
 
 ## How to run a DAG to test
 
